@@ -1,0 +1,24 @@
+Package: TMDSpatial
+Title: Extension of mcomsimr and others
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "First",
+           family = "Last",
+           role = c("aut", "cre"),
+           email = "first.last@example.com",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    ggplot2,
+    dplyr,
+    som.nn,
+    viridis,
+    tidyr,
+    RandomFields,
+    vegan,
+    magrittr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
