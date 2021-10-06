@@ -82,6 +82,21 @@ afrac = rda(decostand(occ_cscore, "hel"), pcnm(dist(t$landscape))$vectors, model
 anova(afrac, step = 200, perm.max = 200)
 
 
+# BrayCurtis
+
+mod = varpart(vegdist(occ_cscore), ~., pcnm(dist(t$landscape))$vectors, data = data.frame(env1 = t$env.df$env1[1:100]))
+mod
+
+showvarparts(2, bg = c("hotpink","skyblue"))
+plot(mod, bg = c("hotpink","skyblue"))
+
+afrac = rda(decostand(occ_cscore, "hel"), model.matrix(~., data.frame(env1 = t$env.df$env1[1:100]))[,-1], pcnm(dist(t$landscape))$vectors)
+anova(afrac, step = 200, perm.max = 200)
+
+afrac = rda(decostand(occ_cscore, "hel"), pcnm(dist(t$landscape))$vectors, model.matrix(~., data.frame(env1 = t$env.df$env1[1:100]))[,-1])
+anova(afrac, step = 200, perm.max = 200)
+
+
 #################################
 
 # Hmsc
@@ -126,6 +141,45 @@ m3=Hmsc(Y = as.matrix(occ_cscore),
 m3 = sampleMcmc(m3, samples = 1000, nChains = 3, nParallel = 3)
 computeAssociations(m3)
 Hmsc::getPostEstimate(m3, "Beta")
+
+
+
+## Witj PLN
+
+library(PLNmodels)
+XData = as.data.frame(XData)
+rownames(XData) = paste0("P", rownames(XData))
+
+occ_cscore = occ_cscore[apply(occ_cscore, 1, sum)!=0,]
+
+dt = prepare_data(occ_cscore, as.data.frame(XData)%>%mutate("env1.2" = env1^2))
+
+O = log(rowSums(occ_cscore) %o% rep(1, ncol(occ_cscore)))
+
+nm=PLNnetwork(Abundance ~ 1 + env1 + env1.2 + offset(O), data = dt)
+plot(nm)
+coefficient_path(nm, corr = TRUE) %>%
+  ggplot(aes(x = Penalty, y = Coeff, group = Edge, colour = Edge)) +
+  geom_line(show.legend = FALSE) +  coord_trans(x="log10") + theme_bw()
+bm = getBestModel(nm, "BIC")
+plot(bm, type = "support", output = "corrplot")
+bm$model_par$Omega
+
+stability_selection(nm)
+plot(nm, "stability")
+bm = getBestModel(nm, "StARS")
+plot(bm, type = "support", output = "corrplot")
+bm$model_par$Omega
+bm$model_par$Sigma
+
+
+nm=PLN(Abundance ~ . + offset(O), data = dt, control = list(covariance = "diagonal"))
+nm2=PLN(Abundance ~ . + offset(O), data = dt)
+nm$model_par$Sigma
+nm2$model_par$Sigma
+
+nm$BIC
+nm2$BIC
 
 ##################################
 library(R2jags)
