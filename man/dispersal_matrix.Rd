@@ -30,7 +30,7 @@ matrix with dispersal probabilities
 Generates dispersal matrix for metacommunity simulations
 }
 \examples{
-dispersal_matrix(landscape_generate())
+# dispersal_matrix(landscape_generate())
 
 }
 \author{

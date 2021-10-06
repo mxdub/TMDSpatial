@@ -39,7 +39,7 @@ dataframe an optima and niche breadth for each species
 Generates species specific traits for density independent environmental responses
 }
 \examples{
-env_traits(species = 10)
+# env_traits(species = 10)
 
 }
 \author{

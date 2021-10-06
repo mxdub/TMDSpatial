@@ -2,6 +2,7 @@
 
 export(dispersal_matrix)
 export(env_generate)
+export(env_generate_wrp)
 export(env_traits)
 export(landscape_generate)
 export(simulate_MC)

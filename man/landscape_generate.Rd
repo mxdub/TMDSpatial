@@ -20,7 +20,7 @@ landscape with x and y coordinates
 Generates a landscape for metacommunity simulations
 }
 \examples{
-landscape_generate()
+# landscape_generate()
 
 }
 \author{

@@ -32,7 +32,7 @@
 #' @author Patrick L. Thompson, \email{patrick.thompson@@zoology.ubc.ca}
 #'
 #' @examples
-#' simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
+#' # simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
 
 #'
 #' @import ggplot2

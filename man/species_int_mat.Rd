@@ -36,7 +36,7 @@ species interaction matrix
 Generates density dependent matrix of per capita competition
 }
 \examples{
-env_traits(species = 10)
+# env_traits(species = 10)
 
 }
 \author{

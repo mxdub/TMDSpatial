@@ -90,7 +90,7 @@ list that includes metacommunity dynamics, landscape coordinates, environmental 
 Simulate Metacommunity Dynamics
 }
 \examples{
-simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
+# simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
 
 }
 \author{
