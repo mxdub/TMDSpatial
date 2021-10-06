@@ -12,6 +12,7 @@ simulate_MC(
   torus = FALSE,
   kernel_exp = 0.1,
   env1Scale = 500,
+  temporal_autocorr = TRUE,
   timesteps = 1200,
   burn_in = 800,
   initialization = 200,
@@ -46,6 +47,8 @@ simulate_MC(
 \item{kernel_exp}{the exponential rate at which dispersal decreases as a function of the distance between patches}
 
 \item{env1Scale}{scale of environmental autocorrelation between 0 and 1000}
+
+\item{temporal_autocorr}{(logical) adding temporal (autocorrelated) heterogeneity}
 
 \item{timesteps}{number of timesteps to simulate}
 
@@ -87,12 +90,12 @@ simulate_MC(
 list that includes metacommunity dynamics, landscape coordinates, environmental conditions, species environmental traits, dispersal matrix, and the competition matrix
 }
 \description{
-Simulate Metacommunity Dynamics
+Function is here updated - allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
 }
 \examples{
 # simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
 
 }
 \author{
-Patrick L. Thompson, \email{patrick.thompson@zoology.ubc.ca}
+Patrick L. Thompson, (updated M.D.)
 }

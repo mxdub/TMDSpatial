@@ -1,5 +1,7 @@
 #' Simulate Metacommunity Dynamics
 #'
+#' Function is here updated - allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
+#'
 #' @param patches number of patches to simulate
 #' @param species number of species to simulate
 #' @param dispersal dispersal probability between 0 and 1
@@ -7,6 +9,7 @@
 #' @param torus whether to model the landscape as a torus
 #' @param kernel_exp the exponential rate at which dispersal decreases as a function of the distance between patches
 #' @param env1Scale scale of environmental autocorrelation between 0 and 1000
+#' @param temporal_autocorr (logical) adding temporal (autocorrelated) heterogeneity
 #' @param timesteps number of timesteps to simulate
 #' @param burn_in length of burn in period
 #' @param initialization length of initial period before environmental change begins
@@ -29,7 +32,7 @@
 
 #' @return list that includes metacommunity dynamics, landscape coordinates, environmental conditions, species environmental traits, dispersal matrix, and the competition matrix
 #'
-#' @author Patrick L. Thompson, \email{patrick.thompson@@zoology.ubc.ca}
+#' @author Patrick L. Thompson, (updated M.D.)
 #'
 #' @examples
 #' # simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
@@ -43,7 +46,7 @@
 simulate_MC <- function(patches, species, dispersal = 0.01,
                         plot = TRUE,
                         torus = FALSE, kernel_exp = 0.1,
-                        env1Scale = 500, timesteps = 1200, burn_in = 800, initialization = 200,
+                        env1Scale = 500, temporal_autocorr = TRUE, timesteps = 1200, burn_in = 800, initialization = 200,
                         max_r = 5, min_env = 0, max_env = 1, env_niche_breadth = 0.5, optima_spacing = "random",
                         intra = 1, min_inter = 0, max_inter = 1, comp_scaler = 0.05,
                         extirp_prob = 0,
@@ -61,9 +64,9 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
   }
 
   if (missing(env.df)){
-    env.df <- env_generate(landscape = landscape, env1Scale = env1Scale, timesteps = timesteps+burn_in, plot = plot)
+    env.df <- env_generate_wrp(landscape = landscape, env1Scale = env1Scale, temporal_autocorr = temporal_autocorr, timesteps = timesteps+burn_in, plot = plot)
   } else {
-    env.df <- env_generate(landscape = landscape, env.df = env.df, env1Scale = env1Scale, timesteps = timesteps+burn_in, plot = plot)
+    env.df <- env_generate_wrp(landscape = landscape, env.df = env.df, env1Scale = env1Scale, temporal_autocorr = temporal_autocorr, timesteps = timesteps+burn_in, plot = plot)
   }
 
   if (missing(env_optima)){

@@ -138,7 +138,7 @@ env_generate <- function(landscape, env.df, env1Scale = 500, timesteps = 1000, p
   if(plot == TRUE){
     g<-ggplot2::ggplot(env.df, aes(x = time, y = env1, group = patch, color = factor(patch)))+
       ggplot2::geom_line()+
-      scale_color_viridis_d(guide=F)
+      scale_color_viridis_d(guide='none')
     print(g)
   }
 
@@ -177,7 +177,15 @@ env_generate_wrp <- function(landscape, env.df, env1Scale = 500, temporal_autoco
         RandomFields::RMtrend(mean=0.05) # and mean
 
       RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
-      env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"), patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+
+      if(temporal_autocorr){
+        env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"),
+                             patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+      }
+      else{
+        env.df <- data.frame(env1 = vegan::decostand(RF,method = "range")[1:nrow(landscape), ],
+                             patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+      }
       env.initial <- env.df[env.df$time == 1,]
       if((max(env.initial$env1)-min(env.initial$env1)) > 0.6) {break}
     }
@@ -188,7 +196,7 @@ env_generate_wrp <- function(landscape, env.df, env1Scale = 500, temporal_autoco
   if(plot == TRUE){
     g<-ggplot2::ggplot(env.df, aes(x = time, y = env1, group = patch, color = factor(patch)))+
       ggplot2::geom_line()+
-      scale_color_viridis_d(guide=F)
+      scale_color_viridis_d(guide='none')
     print(g)
   }
 
