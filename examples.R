@@ -1,6 +1,8 @@
 library(tidyverse)
 library(ecospat)
 
+#### Simulate data ####
+
 N_patch = 100
 N_species=3
 
@@ -24,6 +26,8 @@ t = simulate_MC(N_patch, species = N_species,
                 timesteps = 100, burn_in = 100, initialization = 0)
 
 occ = t$dynamics.df %>% select(-env_niche_breadth, -max_r, -optima, -env)
+
+#### Transform output ####
 
 to_array = function(x){
   x_ = x %>%spread(time, N)
@@ -52,6 +56,7 @@ ggplot(occupancies%>%filter(name>0)%>%filter(name%%2==0), aes(x=name, y=value, c
   geom_line()+
   scale_y_continuous(limits=c(0,1))
 
+#### C-score ####
 
 ## Computing C-score
 position_  = 125
@@ -64,8 +69,7 @@ rownames(occ_cscore) = paste0("P", 1:N_patch)
 ecospat.Cscore(occ_cscore, nperm = 1000, outpath = "../../output/")
 
 
-
-## Vegan VarPart
+#### Var. part ####
 
 library(vegan)
 
@@ -97,7 +101,7 @@ afrac = rda(decostand(occ_cscore, "hel"), pcnm(dist(t$landscape))$vectors, model
 anova(afrac, step = 200, perm.max = 200)
 
 
-#################################
+#### JSDM (HMSC) ####
 
 # Hmsc
 library(Hmsc)
@@ -144,7 +148,7 @@ Hmsc::getPostEstimate(m3, "Beta")
 
 
 
-## Witj PLN
+#### JSDM (PLNnet, see others? ) ####
 
 library(PLNmodels)
 XData = as.data.frame(XData)
@@ -181,7 +185,70 @@ nm2$model_par$Sigma
 nm$BIC
 nm2$BIC
 
-##################################
+
+#### MP mod. (unmarked) ####
+
+library(unmarked)
+N <- 1000
+nspecies <- 3
+J <- 5
+
+occ_covs <- as.data.frame(matrix(rnorm(N * 10),ncol=10))
+names(occ_covs) <- paste('occ_cov',1:10,sep='')
+
+det_covs <- list()
+for (i in 1:nspecies){
+  det_covs[[i]] <- matrix(rnorm(N*J),nrow=N)
+}
+names(det_covs) <- paste('det_cov',1:nspecies,sep='')
+
+#True vals
+beta <- c(0.5,0.2,0.4,0.5,-0.1,-0.3,0.2,0.1,-1,0.1)
+f1 <- beta[1] + beta[2]*occ_covs$occ_cov1
+f2 <- beta[3] + beta[4]*occ_covs$occ_cov2
+f3 <- beta[5] + beta[6]*occ_covs$occ_cov3
+f4 <- beta[7]
+f5 <- beta[8]
+f6 <- beta[9]
+f7 <- beta[10]
+f <- cbind(f1,f2,f3,f4,f5,f6,f7)
+z <- expand.grid(rep(list(1:0),nspecies))[,nspecies:1]
+colnames(z) <- paste('sp',1:nspecies,sep='')
+dm <- model.matrix(as.formula(paste0("~.^",nspecies,"-1")),z)
+
+psi <- exp(f %*% t(dm))
+psi <- psi/rowSums(psi)
+
+#True state
+ztruth <- matrix(NA,nrow=N,ncol=nspecies)
+for (i in 1:N){
+  ztruth[i,] <- as.matrix(z[sample(8,1,prob=psi[i,]),])
+}
+
+p_true <- c(0.6,0.7,0.5)
+
+# fake y data
+y <- list()
+
+for (i in 1:nspecies){
+  y[[i]] <- matrix(NA,N,J)
+  for (j in 1:N){
+    for (k in 1:J){
+      y[[i]][j,k] <- rbinom(1,1,ztruth[j,i]*p_true[i])
+    }
+  }
+}
+names(y) <- c('coyote','tiger','bear')
+
+#Create the unmarked data object
+data = unmarkedFrameOccuMulti(y=y,siteCovs=occ_covs,obsCovs=det_covs)
+
+#Summary of data object
+summary(data)
+plot(data)
+
+#### MP mod. (hand-made) ####
+
 library(R2jags)
 
 occupancies = occ
@@ -226,24 +293,3 @@ jm = as.mcmc(jm)
 
 jm[[1]][,c(8,1,2)]
 jm[[1]][,c(9,3,4)]
-
-tmax=50
-N = rep(0.3, tmax)
-g = 0.05
-e = 1.5
-for(t in 2:tmax)
-  N[t] = N[t-1]*( (1-e) + e*g ) + (1-N[t-1])*g
-N
-g/(g+e-g*e)
-
-
-tmax=50
-N = rep(0.3, tmax)
-g = 0.05
-e = 1.5
-for(t in 2:tmax)
-  N[t] = N[t-1]*( (1-e) ) + (1-N[t-1])*g
-N
-g/(g+e-g*e)
-
-
