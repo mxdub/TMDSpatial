@@ -1,6 +1,8 @@
 #' Simulate Metacommunity Dynamics
 #'
-#' Function is here updated - allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
+#' Function is here updated
+#' - allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
+#' - extirpation can be applied to patch instead of to species/patch (see extirp_all_pop param)
 #'
 #' @param patches number of patches to simulate
 #' @param species number of species to simulate
@@ -9,7 +11,7 @@
 #' @param torus whether to model the landscape as a torus
 #' @param kernel_exp the exponential rate at which dispersal decreases as a function of the distance between patches
 #' @param env1Scale scale of environmental autocorrelation between 0 and 1000
-#' @param temporal_autocorr (logical) adding temporal (autocorrelated) heterogeneity
+#' @param temporal_autocorr (logical - default True) adding temporal (autocorrelated) heterogeneity
 #' @param timesteps number of timesteps to simulate
 #' @param burn_in length of burn in period
 #' @param initialization length of initial period before environmental change begins
@@ -23,6 +25,7 @@
 #' @param max_inter max interspecific comp. coefficient
 #' @param comp_scaler value to multiply all competition coefficients by
 #' @param extirp_prob probability of local extirpation for each population in each time step (should be a very small value, e.g. 0 or 0.002)
+#' @param extirp_all_pop (logical - default False) should extirpation applied to all species in a patch (T) or to species/patch combination (F)
 #'
 #' @param landscape optional dataframe with x and y columns for patch coordinates
 #' @param disp_mat optional matrix with each column specifying the probability that an individual disperses to each other patch (row)
@@ -49,7 +52,7 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
                         env1Scale = 500, temporal_autocorr = TRUE, timesteps = 1200, burn_in = 800, initialization = 200,
                         max_r = 5, min_env = 0, max_env = 1, env_niche_breadth = 0.5, optima_spacing = "random",
                         intra = 1, min_inter = 0, max_inter = 1, comp_scaler = 0.05,
-                        extirp_prob = 0,
+                        extirp_prob = 0, extirp_all_pop = F,
                         landscape, disp_mat, env.df, env_optima, int_mat){
   if (missing(landscape)){
     landscape <- landscape_generate(patches = patches, plot = plot)
@@ -93,6 +96,7 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
     } else {
       env <- env.df$env1[env.df$time == (i-initialization)]
     }
+
     r <- max_r*exp(-(t((env_traits.df$optima - matrix(rep(env, each = species), nrow = species, ncol = patches))/(2*env_traits.df$env_niche_breadth)))^2)
     N_hat <- N*r/(1+N%*%int_mat)
     N_hat[N_hat < 0] <- 0
@@ -110,7 +114,12 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
     })
 
     N <- N_hat - E + I
-    N[rbinom(n = species * patches, size = 1, prob = extirp_prob)>0] <- 0
+
+    if(extirp_all_pop){
+      N[rbinom(n = patches, size = 1, prob = extirp_prob)>0,] <- 0
+    }else{
+      N[rbinom(n = species * patches, size = 1, prob = extirp_prob)>0] <- 0
+    }
 
     dynamics.df <- rbind(dynamics.df, data.frame(N = c(N), patch = 1:patches, species = rep(1:species, each = patches), env = env, time = i-initialization-burn_in))
     setTxtProgressBar(pb, i)

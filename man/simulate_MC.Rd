@@ -26,6 +26,7 @@ simulate_MC(
   max_inter = 1,
   comp_scaler = 0.05,
   extirp_prob = 0,
+  extirp_all_pop = F,
   landscape,
   disp_mat,
   env.df,
@@ -48,7 +49,7 @@ simulate_MC(
 
 \item{env1Scale}{scale of environmental autocorrelation between 0 and 1000}
 
-\item{temporal_autocorr}{(logical) adding temporal (autocorrelated) heterogeneity}
+\item{temporal_autocorr}{(logical - default True) adding temporal (autocorrelated) heterogeneity}
 
 \item{timesteps}{number of timesteps to simulate}
 
@@ -76,6 +77,8 @@ simulate_MC(
 
 \item{extirp_prob}{probability of local extirpation for each population in each time step (should be a very small value, e.g. 0 or 0.002)}
 
+\item{extirp_all_pop}{(logical - default False) should extirpation applied to all species in a patch (T) or to species/patch combination (F)}
+
 \item{landscape}{optional dataframe with x and y columns for patch coordinates}
 
 \item{disp_mat}{optional matrix with each column specifying the probability that an individual disperses to each other patch (row)}
@@ -90,7 +93,11 @@ simulate_MC(
 list that includes metacommunity dynamics, landscape coordinates, environmental conditions, species environmental traits, dispersal matrix, and the competition matrix
 }
 \description{
-Function is here updated - allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
+Function is here updated
+\itemize{
+\item allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
+\item extirpation can be applied to patch instead of to species/patch (see extirp_all_pop param)
+}
 }
 \examples{
 # simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
