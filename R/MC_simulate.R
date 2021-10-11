@@ -84,7 +84,7 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
     int_mat <- species_int_mat(species = species, int_mat = int_mat, intra = intra, min_inter = min_inter, max_inter = max_inter, comp_scaler = comp_scaler, plot = TRUE)
   }
 
-  dynamics.df <- data.frame()
+  dynamics.df <- list()
   N <- matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
   pb <- txtProgressBar(min = 0, max = initialization + burn_in + timesteps, style = 3)
   for(i in 1:(initialization + burn_in + timesteps)){
@@ -121,11 +121,11 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
       N[rbinom(n = species * patches, size = 1, prob = extirp_prob)>0] <- 0
     }
 
-    dynamics.df <- rbind(dynamics.df, data.frame(N = c(N), patch = 1:patches, species = rep(1:species, each = patches), env = env, time = i-initialization-burn_in))
+    dynamics.df[[i]] = data.frame(N = c(N), patch = 1:patches, species = rep(1:species, each = patches), env = env, time = i-initialization-burn_in)
     setTxtProgressBar(pb, i)
   }
   close(pb)
-  dynamics.df <- left_join(dynamics.df, env_traits.df)
+  dynamics.df = do.call(rbind, dynamics.df) %>% left_join(env_traits.df)
   env.df$time_run <- env.df$time - burn_in
 
   env.df_init <- data.frame(env1 = env.df$env1[env.df$time == 1], patch = 1:patches, time = NA, time_run = rep(seq(-(burn_in + initialization), -burn_in, by = 1), each = patches))
