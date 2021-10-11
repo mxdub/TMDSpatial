@@ -176,14 +176,18 @@ env_generate_wrp <- function(landscape, env.df, env1Scale = 500, temporal_autoco
         RandomFields::RMnugget(var=0) + # nugget
         RandomFields::RMtrend(mean=0.05) # and mean
 
-      RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
-
       if(temporal_autocorr){
+
+        RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
+
         env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"),
                              patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
       }
       else{
-        env.df <- data.frame(env1 = vegan::decostand(RF,method = "range")[1:nrow(landscape), ],
+
+        RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = NULL, spConform=FALSE)
+
+        env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"),
                              patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
       }
       env.initial <- env.df[env.df$time == 1,]

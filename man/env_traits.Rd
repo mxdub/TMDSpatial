@@ -43,5 +43,5 @@ Generates species specific traits for density independent environmental response
 
 }
 \author{
-Patrick L. Thompson, \email{patrick.thompson@zoology.ubc.ca}
+Patrick L. Thompson (updated M.D.)
 }
