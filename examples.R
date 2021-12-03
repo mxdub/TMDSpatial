@@ -4,46 +4,33 @@ library(TMDSpatial)
 
 #### Simulate data ####
 
-N_patch = 1000
-N_species=30
-
-t = simulate_MC(N_patch, N_species, temporal_autocorr = F, timesteps = 500, burn_in = 100)
+N_patch = 250
+N_species=3
 
 t = simulate_MC(N_patch, species = N_species,
-                min_inter = 0, max_inter = 2, env1Scale = 50,
-                temporal_autocorr = F,
-                env_niche_breadth = 0.1, env_optima = c(0.7,0.2,0.2),
+                min_inter = 0, max_inter = 2,
+                temporal_autocorr = F, env1Scale = 50,
+                env_niche_breadth = 0.1, env_optima = c(0.5,0.5,0.5),
                 int_mat = matrix(c(0.5,0.0,0.0,
                                    0.0,0.5,0.6,
                                    0.0,0.6,0.5), byrow = T, nrow = 3),
-                dispersal = 0.01, kernel_exp = 0.3,
+                dispersal = 0.3, kernel_exp = 0.001,
                 extirp_prob = c(0),
-                timesteps = 100, burn_in = 100, initialization = 0)
+                timesteps = 300, burn_in = 100, initialization = 0)
 
-N_species=1
-t = simulate_MC(N_patch, species = N_species,
-                min_inter = 0, max_inter = 2,
-                env_niche_breadth = 10, env_optima = c(0.5),
-                dispersal = 0.01, kernel_exp = 0.00001,
-                extirp_prob = c(0.05),
-                timesteps = 100, burn_in = 100, initialization = 0)
+### Check spatial autocorrelation
 
-occ = t$dynamics.df %>% select(-env_niche_breadth, -max_r, -optima, -env)
+ndt_spat = t$env.df %>% filter(time_run == t$env.df$time_run[1]) %>% select(env1, patch) %>%
+  left_join(t$landscape %>% as_tibble() %>% rownames_to_column(var="patch") %>% mutate_at("patch", as.numeric))
+
+ggplot(ndt_spat, aes(x=x, y=y, color = env1))+
+  geom_point()+
+  scale_color_gradient2(low = "blue", mid = "white", high = 'red', midpoint = 0.5)+
+  theme_classic()
 
 #### Transform output ####
 
-to_array = function(x){
-  x_ = x %>%spread(time, N)
-  tmp = array(0, dim = c(length(unique(x$species)),
-                         length(unique(x$patch)),
-                         length(unique(x$time))))
-  for(s in 1:length(unique(x$species))){
-    tmp[s,,] = x_ %>% filter(species == s)%>%arrange(patch)%>%select(-patch, -species)%>%as.matrix()
-  }
-  tmp
-}
-
-occ = to_array(occ)
+occ = sim_to_matrix(t)
 
 occupancies = occ
 occupancies[occ>0]=1
@@ -69,7 +56,9 @@ occupancies[occ>0]=1
 occ_cscore = t(occupancies[,,position_])
 colnames(occ_cscore) = paste0("S", 1:N_species)
 rownames(occ_cscore) = paste0("P", 1:N_patch)
-ecospat.Cscore(occ_cscore, nperm = 1000, outpath = "./outputs/", verbose = T)
+
+# Need at least one co-occ...
+ecospat.Cscore(as.data.frame(occ_cscore), nperm = 1000, outpath = "./outputs/", verbose = T)
 
 
 #### Var. part ####

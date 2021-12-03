@@ -1,8 +1,10 @@
 #' Simulate Metacommunity Dynamics
 #'
 #' Function is here updated
-#' - allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
-#' - extirpation can be applied to patch instead of to species/patch (see extirp_all_pop param)
+#' - allow to remove temporal environmental heterogeneity (see temporal_autocorr param, default)
+#' - extirpation can be applied to patch instead of to species/patch (see extirp_all_pop param
+#'
+#' Carefull, the default behaviour is now without temporal variability (and then, w/o temporal autocorrelation)
 #'
 #' @param patches number of patches to simulate
 #' @param species number of species to simulate
@@ -11,7 +13,7 @@
 #' @param torus whether to model the landscape as a torus
 #' @param kernel_exp the exponential rate at which dispersal decreases as a function of the distance between patches
 #' @param env1Scale scale of environmental autocorrelation between 0 and 1000
-#' @param temporal_autocorr (logical - default True) adding temporal (autocorrelated) heterogeneity
+#' @param temporal_autocorr (logical - default False) adding temporal (autocorrelated) heterogeneity
 #' @param timesteps number of timesteps to simulate
 #' @param burn_in length of burn in period
 #' @param initialization length of initial period before environmental change begins
@@ -49,7 +51,7 @@
 simulate_MC <- function(patches, species, dispersal = 0.01,
                         plot = TRUE,
                         torus = FALSE, kernel_exp = 0.1,
-                        env1Scale = 500, temporal_autocorr = TRUE, timesteps = 1200, burn_in = 800, initialization = 200,
+                        env1Scale = 500, temporal_autocorr = FALSE, timesteps = 1200, burn_in = 800, initialization = 200,
                         max_r = 5, min_env = 0, max_env = 1, env_niche_breadth = 0.5, optima_spacing = "random",
                         intra = 1, min_inter = 0, max_inter = 1, comp_scaler = 0.05,
                         extirp_prob = 0, extirp_all_pop = F,

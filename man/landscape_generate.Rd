@@ -18,11 +18,12 @@ landscape with x and y coordinates
 }
 \description{
 Generates a landscape for metacommunity simulations
+Function is here updated - Extended landscape (avoid nearly inf. loop with large number of patches)
 }
 \examples{
 # landscape_generate()
 
 }
 \author{
-Patrick L. Thompson, \email{patrick.thompson@zoology.ubc.ca}
+Patrick L. Thompson, \email{patrick.thompson@zoology.ubc.ca} (updated M.D.)
 }

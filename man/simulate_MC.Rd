@@ -12,7 +12,7 @@ simulate_MC(
   torus = FALSE,
   kernel_exp = 0.1,
   env1Scale = 500,
-  temporal_autocorr = TRUE,
+  temporal_autocorr = FALSE,
   timesteps = 1200,
   burn_in = 800,
   initialization = 200,
@@ -49,7 +49,7 @@ simulate_MC(
 
 \item{env1Scale}{scale of environmental autocorrelation between 0 and 1000}
 
-\item{temporal_autocorr}{(logical - default True) adding temporal (autocorrelated) heterogeneity}
+\item{temporal_autocorr}{(logical - default False) adding temporal (autocorrelated) heterogeneity}
 
 \item{timesteps}{number of timesteps to simulate}
 
@@ -95,9 +95,12 @@ list that includes metacommunity dynamics, landscape coordinates, environmental 
 \description{
 Function is here updated
 \itemize{
-\item allow to remove temporal environmental heterogeneity (see temporal_autocorr param)
-\item extirpation can be applied to patch instead of to species/patch (see extirp_all_pop param)
+\item allow to remove temporal environmental heterogeneity (see temporal_autocorr param, default)
+\item extirpation can be applied to patch instead of to species/patch (see extirp_all_pop param
 }
+}
+\details{
+Carefull, the default behaviour is now without temporal variability (and then, w/o temporal autocorrelation)
 }
 \examples{
 # simulate_MC(patches = 6, species = 10, dispersal = 0.001, min_inter = 1, max_inter = 1, env_niche_breadth = 10)
