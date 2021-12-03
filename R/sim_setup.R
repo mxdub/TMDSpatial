@@ -1,6 +1,7 @@
 #' Generate landscape
 #'
 #' Generates a landscape for metacommunity simulations
+#' Function is here updated - Extended landscape (avoid nearly inf. loop with large number of patches)
 #'
 #' @param patches number of patches to include in landscape
 #' @param xy optional dataframe with x and y columns for patch coordinates
@@ -8,7 +9,7 @@
 #'
 #' @return landscape with x and y coordinates
 #'
-#' @author Patrick L. Thompson, \email{patrick.thompson@@zoology.ubc.ca}
+#' @author Patrick L. Thompson, \email{patrick.thompson@@zoology.ubc.ca} (updated M.D.)
 #'
 #' @examples
 #' # landscape_generate()
@@ -18,7 +19,7 @@
 landscape_generate <- function(patches = 100, xy, plot = TRUE) {
   if (missing(xy)){
     repeat {
-      landscape<-round(data.frame(x = runif(patches, min = 1, max = 100), y = runif(patches, min = 1, max = 100)))
+      landscape<-round(data.frame(x = runif(patches, min = 1, max = 1000), y = runif(patches, min = 1, max = 1000)))
       if (dim(unique(landscape))[1] == dim(landscape)[1]) {break}
     }
     clusters <- hclust(dist(landscape),method = "ward.D2")

@@ -1,10 +1,13 @@
 library(tidyverse)
 library(ecospat)
+library(TMDSpatial)
 
 #### Simulate data ####
 
-N_patch = 100
-N_species=3
+N_patch = 1000
+N_species=30
+
+t = simulate_MC(N_patch, N_species, temporal_autocorr = F, timesteps = 500, burn_in = 100)
 
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2, env1Scale = 50,
@@ -66,7 +69,7 @@ occupancies[occ>0]=1
 occ_cscore = t(occupancies[,,position_])
 colnames(occ_cscore) = paste0("S", 1:N_species)
 rownames(occ_cscore) = paste0("P", 1:N_patch)
-ecospat.Cscore(occ_cscore, nperm = 1000, outpath = "../../output/")
+ecospat.Cscore(occ_cscore, nperm = 1000, outpath = "./outputs/", verbose = T)
 
 
 #### Var. part ####
@@ -399,5 +402,6 @@ profvis({
 
     return(list(dynamics.df = dynamics.df, landscape = landscape, env.df = env.df, env_traits.df = env_traits.df, disp_mat = disp_mat, int_mat = int_mat))
   }
-  simulate_MC(50,10,temporal_autocorr = F)
+  simulate_MC(1000,30,temporal_autocorr = F)
 })
+
