@@ -4,7 +4,7 @@
 #'
 #' @param sim_output Output from simulate_MC()
 #'
-#' @return 3D matrix (species x patch x time)
+#' @return 3D abundances matrix (species x patch x time)
 #'
 #' @examples
 #' # output = simulate_MC(5,5)
@@ -23,3 +23,54 @@ sim_to_matrix = function(sim_output){
   }
   tmp
 }
+
+#' From abundances matrix to occupancies matrix
+#'
+#' Turns abundances matrix to occupancies matrix  (species x patch x time)
+#'
+#' @param abundances Abundances matrix
+#'
+#' @return 3D occupancies matrix (species x patch x time)
+#'
+#' @examples
+#' # occupancies = abund_to_occ(abundances)
+#'
+#' @export
+#'
+abund_to_occ = function(abundances){
+  abundances[abundances>0]=1
+  abundances
+}
+
+#' Plots occupancies along time
+#'
+#' Simply plots proportion of occupied patch by species as function of time
+#'
+#' @param occupancies Occupancies matrix
+#' @param
+#'
+#' @return none
+#'
+#' @examples
+#' # plots_occupancies(occupancies)
+#'
+#' @import ggplot2
+#' @import dplyr
+#'
+#' @export
+#'
+plots_occupancies = function(occupancies){
+  occupancies = apply(occupancies, c(1,3), sum) / dim(occupancies)[2]
+  occupancies = occupancies %>% as_tibble() %>% rowid_to_column("species") %>%
+    pivot_longer(-species) %>%
+    mutate(name = str_replace(name, "V", "")) %>%
+    mutate_at(.vars = c("name"), as.numeric)
+
+  ggplot(occupancies%>%filter(name>0), aes(x=name, y=value, color = as.factor(species)))+
+    geom_line()+
+    scale_y_continuous(limits=c(0,1))+
+    labs(x = "Time", y = "Occupancy", color = "Species")+
+    theme_bw()
+}
+
+

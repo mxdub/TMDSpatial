@@ -10,7 +10,7 @@ sim_to_matrix(sim_output)
 \item{sim_output}{Output from simulate_MC()}
 }
 \value{
-3D matrix (species x patch x time)
+3D abundances matrix (species x patch x time)
 }
 \description{
 Reformats simulate_MC() output to 3D matrix (species x patch x time)

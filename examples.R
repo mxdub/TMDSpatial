@@ -10,10 +10,10 @@ N_species=3
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2,
                 temporal_autocorr = F, env1Scale = 50,
-                env_niche_breadth = 0.1, env_optima = c(0.5,0.5,0.5),
+                env_niche_breadth = 0.05, env_optima = c(0.2,0.5,0.9),
                 int_mat = matrix(c(0.5,0.0,0.0,
-                                   0.0,0.5,0.6,
-                                   0.0,0.6,0.5), byrow = T, nrow = 3),
+                                   0.0,0.5,0.5,
+                                   0.0,0.5,0.5), byrow = T, nrow = 3),
                 dispersal = 0.3, kernel_exp = 0.001,
                 extirp_prob = c(0),
                 timesteps = 300, burn_in = 100, initialization = 0)
@@ -30,28 +30,16 @@ ggplot(ndt_spat, aes(x=x, y=y, color = env1))+
 
 #### Transform output ####
 
-occ = sim_to_matrix(t)
+abundances = sim_to_matrix(t)
+occupancies = abund_to_occ(abundances)
 
-occupancies = occ
-occupancies[occ>0]=1
+## Plots occupancies
+plots_occupancies(occupancies)
 
-## Proportion de site occupés
-occupancies = apply(occupancies, c(1,3), sum) / N_patch
-occupancies = occupancies %>% as_tibble() %>% rowid_to_column("species") %>%
-  pivot_longer(-species) %>%
-  mutate(name = str_replace(name, "V", "")) %>%
-  mutate_at(.vars = c("name"), as.numeric)
-
-ggplot(occupancies%>%filter(name>0)%>%filter(name%%2==0), aes(x=name, y=value, color = as.factor(species)))+
-  geom_line()+
-  scale_y_continuous(limits=c(0,1))
-
-#### C-score ####
+#### C-score #### (on occupancies)
 
 ## Computing C-score
-position_  = 125
-occupancies = occ
-occupancies[occ>0]=1
+position_  = 200
 
 occ_cscore = t(occupancies[,,position_])
 colnames(occ_cscore) = paste0("S", 1:N_species)
@@ -65,31 +53,49 @@ ecospat.Cscore(as.data.frame(occ_cscore), nperm = 1000, outpath = "./outputs/", 
 
 library(vegan)
 
-mod = varpart(occ_cscore, ~., pcnm(dist(t$landscape))$vectors, data = data.frame(env1 = t$env.df$env1[1:100]), transfo = 'hel')
+occ_cscore = t(abundances[,,position_])
+colnames(occ_cscore) = paste0("S", 1:N_species)
+rownames(occ_cscore) = paste0("P", 1:N_patch)
+
+mod = varpart(occ_cscore,
+              ~.,
+              pcnm(dist(t$landscape))$vectors,
+              data = data.frame(env1 = t$env.df$env1[1:N_patch]), transfo = 'hel')
 mod
 
 showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
 
-afrac = rda(decostand(occ_cscore, "hel"), model.matrix(~., data.frame(env1 = t$env.df$env1[1:100]))[,-1], pcnm(dist(t$landscape))$vectors)
+afrac = rda(decostand(occ_cscore, "hel"),
+            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1],
+            pcnm(dist(t$landscape))$vectors)
 anova(afrac, step = 200, perm.max = 200)
 
-afrac = rda(decostand(occ_cscore, "hel"), pcnm(dist(t$landscape))$vectors, model.matrix(~., data.frame(env1 = t$env.df$env1[1:100]))[,-1])
+afrac = rda(decostand(occ_cscore, "hel"),
+            pcnm(dist(t$landscape))$vectors,
+            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1])
 anova(afrac, step = 200, perm.max = 200)
 
 
 # BrayCurtis
 
-mod = varpart(vegdist(occ_cscore), ~., pcnm(dist(t$landscape))$vectors, data = data.frame(env1 = t$env.df$env1[1:100]))
+mod = varpart(vegdist(occ_cscore, method = "bray"),
+              ~.,
+              pcnm(dist(t$landscape))$vectors,
+              data = data.frame(env1 = t$env.df$env1[1:N_patch]))
 mod
 
 showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
 
-afrac = rda(decostand(occ_cscore, "hel"), model.matrix(~., data.frame(env1 = t$env.df$env1[1:100]))[,-1], pcnm(dist(t$landscape))$vectors)
+afrac = rda(decostand(occ_cscore, "hel"),
+            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1],
+            pcnm(dist(t$landscape))$vectors)
 anova(afrac, step = 200, perm.max = 200)
 
-afrac = rda(decostand(occ_cscore, "hel"), pcnm(dist(t$landscape))$vectors, model.matrix(~., data.frame(env1 = t$env.df$env1[1:100]))[,-1])
+afrac = rda(decostand(occ_cscore, "hel"),
+            pcnm(dist(t$landscape))$vectors,
+            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1])
 anova(afrac, step = 200, perm.max = 200)
 
 
@@ -108,7 +114,7 @@ ranEff[['samples']] = HmscRandomLevel(units = unique(studyDesign$samples))
 # Var env.
 XData = tibble(env1 = t$env.df %>% filter(time_run == min(time_run)) %>% pull(env1))
 
-# Et finalement, pour définir le modèle (du coup, a adapter avec tes variables à toi, c, x et t - je n'utilisais pas de traits pour ma part)
+# Model
 m=Hmsc(Y = as.matrix(occ_cscore),
        XData = as.data.frame(XData), XFormula = ~ 1+env1+I(env1^2),
        studyDesign = studyDesign, ranLevels = ranEff,
