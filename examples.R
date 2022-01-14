@@ -4,7 +4,7 @@ library(TMDSpatial)
 
 #### Simulate data ####
 
-N_patch = 250
+N_patch = 1500
 N_species=3
 
 t = simulate_MC(N_patch, species = N_species,

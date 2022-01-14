@@ -18,8 +18,11 @@
 #'
 landscape_generate <- function(patches = 100, xy, plot = TRUE) {
   if (missing(xy)){
-    repeat {
-      landscape<-round(data.frame(x = runif(patches, min = 1, max = 1000), y = runif(patches, min = 1, max = 1000)))
+    repeat { # The repeat is useless now no double can be obtained
+      positions_linear = sample(0:9999, patches)
+      landscape = data.frame(x = floor(positions_linear / 100)+1,
+                             y = (positions_linear %% 100) + 1)
+      # landscape<-round(data.frame(x = runif(patches, min = 1, max = 100), y = runif(patches, min = 1, max = 100)))
       if (dim(unique(landscape))[1] == dim(landscape)[1]) {break}
     }
     clusters <- hclust(dist(landscape),method = "ward.D2")
