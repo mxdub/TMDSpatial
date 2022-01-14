@@ -4,19 +4,19 @@ library(TMDSpatial)
 
 #### Simulate data ####
 
-N_patch = 1500
+N_patch = 500
 N_species=3
 
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2,
                 temporal_autocorr = F, env1Scale = 50,
-                env_niche_breadth = 0.05, env_optima = c(0.2,0.5,0.9),
+                env_niche_breadth = 0.05, env_optima = c(0.5,0.5,0.5),
                 int_mat = matrix(c(0.5,0.0,0.0,
                                    0.0,0.5,0.5,
                                    0.0,0.5,0.5), byrow = T, nrow = 3),
-                dispersal = 0.3, kernel_exp = 0.001,
+                dispersal = 0.01, kernel_exp = 0.001,
                 extirp_prob = c(0),
-                timesteps = 300, burn_in = 100, initialization = 0)
+                timesteps = 500, burn_in = 100, initialization = 0)
 
 ### Check spatial autocorrelation
 
@@ -39,7 +39,7 @@ plots_occupancies(occupancies)
 #### C-score #### (on occupancies)
 
 ## Computing C-score
-position_  = 200
+position_  = 400
 
 occ_cscore = t(occupancies[,,position_])
 colnames(occ_cscore) = paste0("S", 1:N_species)
@@ -47,7 +47,7 @@ rownames(occ_cscore) = paste0("P", 1:N_patch)
 
 # Need at least one co-occ...
 ecospat.Cscore(as.data.frame(occ_cscore), nperm = 1000, outpath = "./outputs/", verbose = T)
-
+# If observed C-score > expected C-score : competition, otherwise, "facilitation".
 
 #### Var. part ####
 
