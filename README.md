@@ -7,4 +7,6 @@ On réutilise le package {ecospat} mais légérement modifié. Les modifications
 
 
 Il y a également quelques fonctions en plus pour faciliter l'utilisation des sorties de la fonction simulate_MC().
-
++ sim_to_matrix()
++ abund_to_occ()
++ plots_occupancies
