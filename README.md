@@ -26,7 +26,9 @@ La niche fondamentale des espèces peut être définie automatiquement (si __env
 
 ### Landscape and dispersal
 
-landscape (data.Frame), torus, dispersal, disp_mat, kernet_exp
+Par defaut, les positions des patches sont tirées aléatoirement (positions x et y entre 1 et 100), alternativement, il est possible de fournir un dataframe avec les coordonnées x/y des patches en colonnes via l'argument __landscape__. Par defaut, le paysage n'est pas torique cela peut néanmoins être modifié via l'argument __torus__ (passé à *TRUE*).
+
+La dispersion est gérée via trois arguments. L'argument __dispersal__ donne la probabilité que chaque individu disperse à chaque pas de temps. Les probabilités de migration d'un patch à un autre sont gérées soit via (i) l'argument __kernel_exp__, dans ce cas, une matrice de probabilité de dispersion est générée entre chaque paire de patches (i.e. avec décroissance exponentielle, avec __kernel_exp__ la vitesse de décroissance, en fonction de la distance), soit (ii) en fournissant directement la matrice de probabilité de dispersion interpatches (__disp_mat__).
 
 ### Competition
 
