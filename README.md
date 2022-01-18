@@ -14,7 +14,7 @@ Il y a également quelques fonctions en plus pour faciliter l'utilisation des so
 
 ## Simulations
 
-Les dynamiques locales suivent l'équation (1) de Thompson et al. (2020). 
+Les dynamiques locales suivent l'équation (1) de Thompson et al. (2020). A noter qu'il existe de la stochasticité démographique (i.e., abundances sont des tirages dans une loi de Poisson).
 
 Pour les simulations, les paramètres suivants sont disponibles : 
 
@@ -32,7 +32,7 @@ La dispersion est gérée via trois arguments. L'argument __dispersal__ donne la
 
 ### Competition
 
-
+Les interactions interspecifiques peuvent être ici encore soit manuellement (via l'argument __int_mat__) ou automatiquement. Dans ce dernier cas, l'argument __intra__ donne les valeurs pour leS coefficientS de compétition intraspécifique (soit une valeur pour toutes les espèces, ou un vecteur de la taille du nombre d'espèces), __min_inter__ et __max_inter__ donnent les valeurs minimales et maximales pour les coefficientS interspécifiqueS. Finalement, l'argument __comp_scaler__ permet de changer l'échelle pour tous les coefficients (i.e., augmente ou réduit les effets d'interactions p/r aux effets environnementaux,cf. Eq. 2). A noter; l'effet des interactions n'est pas dépendant des conditions environnementales.
 
 ## Trucs testables
 
