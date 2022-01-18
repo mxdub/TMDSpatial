@@ -10,7 +10,7 @@ N_species=3
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2,
                 temporal_autocorr = F, env1Scale = 1,
-                env_niche_breadth = 0.05, env_optima = c(0.5,0.5,0.5),
+                env_niche_breadth = 0.5, env_optima = c(0.5,0.5,0.5),
                 int_mat = matrix(c(0.5,0.0,0.0,
                                    0.0,0.5,0.5,
                                    0.0,0.5,0.5), byrow = T, nrow = 3),
@@ -30,26 +30,22 @@ plots_occupancies(occupancies)
 
 #### C-score #### (on occupancies)
 
-## Computing C-score
 position_  = 400
-
-occ_cscore = t(occupancies[,,position_])
-colnames(occ_cscore) = paste0("S", 1:N_species)
-rownames(occ_cscore) = paste0("P", 1:N_patch)
+snapshot = t(occupancies[,,position_])
 
 # Need at least one co-occ...
-ecospat.Cscore(as.data.frame(occ_cscore), nperm = 1000, outpath = "./outputs/", verbose = T)
-# If observed C-score > expected C-score : competition, otherwise, "facilitation".
+# If observed C-score > expected C-score : competition, otherwise, "something else".
+ecospat.Cscore(as.data.frame(snapshot), nperm = 1000, outpath = "./outputs/", verbose = T)
+
+
 
 #### Var. part ####
 
 library(vegan)
 
-occ_cscore = t(abundances[,,position_])
-colnames(occ_cscore) = paste0("S", 1:N_species)
-rownames(occ_cscore) = paste0("P", 1:N_patch)
+snapshot = t(abundances[,,position_])
 
-mod = varpart(occ_cscore,
+mod = varpart(snapshot,
               ~.,
               pcnm(dist(t$landscape))$vectors,
               data = data.frame(env1 = t$env.df$env1[1:N_patch]), transfo = 'hel')
@@ -58,12 +54,12 @@ mod
 showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
 
-afrac = rda(decostand(occ_cscore, "hel"),
+afrac = rda(decostand(snapshot, "hel"),
             model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1],
             pcnm(dist(t$landscape))$vectors)
 anova(afrac, step = 200, perm.max = 200)
 
-afrac = rda(decostand(occ_cscore, "hel"),
+afrac = rda(decostand(snapshot, "hel"),
             pcnm(dist(t$landscape))$vectors,
             model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1])
 anova(afrac, step = 200, perm.max = 200)
@@ -71,7 +67,7 @@ anova(afrac, step = 200, perm.max = 200)
 
 # BrayCurtis
 
-mod = varpart(vegdist(occ_cscore, method = "bray"),
+mod = varpart(vegdist(snapshot, method = "bray"),
               ~.,
               pcnm(dist(t$landscape))$vectors,
               data = data.frame(env1 = t$env.df$env1[1:N_patch]))
@@ -80,24 +76,13 @@ mod
 showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
 
-afrac = rda(decostand(occ_cscore, "hel"),
-            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1],
-            pcnm(dist(t$landscape))$vectors)
-anova(afrac, step = 200, perm.max = 200)
-
-afrac = rda(decostand(occ_cscore, "hel"),
-            pcnm(dist(t$landscape))$vectors,
-            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1])
-anova(afrac, step = 200, perm.max = 200)
-
-
 #### JSDM (HMSC) ####
 
 # Hmsc
 library(Hmsc)
 
 # Créer un tableau qui donne les id des sites pour l'effet random (de taille nrow() de ta matrice de presence/absence)
-studyDesign = data.frame( samples = as.factor(rownames(occ_cscore))  )
+studyDesign = data.frame( samples = as.factor(rownames(snapshot))  )
 
 # Créer un liste d'effet random, ici, juste un, l'effet 'site'
 ranEff = list()
@@ -107,7 +92,7 @@ ranEff[['samples']] = HmscRandomLevel(units = unique(studyDesign$samples))
 XData = tibble(env1 = t$env.df %>% filter(time_run == min(time_run)) %>% pull(env1))
 
 # Model
-m=Hmsc(Y = as.matrix(occ_cscore),
+m=Hmsc(Y = abund_to_occ(as.matrix(snapshot)),
        XData = as.data.frame(XData), XFormula = ~ 1+env1+I(env1^2),
        studyDesign = studyDesign, ranLevels = ranEff,
        distr = "probit")
@@ -121,18 +106,17 @@ computeAssociations(m)
 Hmsc::getPostEstimate(m, "Beta")
 
 # With Poisson
-occupancies = occ
 
-occ_cscore = t(occupancies[,,position_])
-colnames(occ_cscore) = paste0("S", 1:N_species)
-rownames(occ_cscore) = paste0("P", 1:N_patch)
-
-m3=Hmsc(Y = as.matrix(occ_cscore),
+m3=Hmsc(Y = as.matrix(snapshot),
         XData = as.data.frame(XData), XFormula = ~ 1+env1+I(env1^2),
         studyDesign = studyDesign, ranLevels = ranEff,
         distr = "poisson")
 
 m3 = sampleMcmc(m3, samples = 1000, nChains = 3, nParallel = 3)
+
+preds = computePredictedValues(m3)
+evaluateModelFit(hM = m3, predY = preds)
+
 computeAssociations(m3)
 Hmsc::getPostEstimate(m3, "Beta")
 
