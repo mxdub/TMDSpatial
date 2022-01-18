@@ -10,7 +10,7 @@ plots_occupancies(occupancies)
 \item{occupancies}{Occupancies matrix}
 }
 \value{
-none
+ggplot plot
 }
 \description{
 Simply plots proportion of occupied patch by species as function of time

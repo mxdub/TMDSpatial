@@ -10,21 +10,19 @@ Il y a également quelques fonctions en plus pour faciliter l'utilisation des so
 + sim_to_matrix() : produit une matrice d'abondances à trois dimensions (espèces x sites x temps) depuis la sortie de simulate_MC()
 + abund_to_occ() : produit une matrice d'occurrences (3D) à partir d'une matrice d'abundances
 + plots_occupancies() : produit un graphique du taux d'occupation des patches à partir d'une matrice d'occurrences. 
-
++ plots_envt() : produit un graphique avec la répartion des patches dans l'espace et leur valeur environnementale
 
 ## Simulations
 
-Les dynamiques locales sont gérées par : $equation$.
+Les dynamiques locales suivent l'équation (1) de Thompson et al. (2020). 
 
-Pour les simulations, on peut jouer avec les paramètres suivants: 
+Pour les simulations, les paramètres suivants sont disponibles : 
 
 ### Environnement et niches (fund.)
 
-L'environnement est constitué uniquement d'un axe. 
+Un unique axe de variation environnemental existe (valeurs de 0 à 1). Comme précisé plus haut, la "valeur environnementale" de chaque site est fixe dans le temps par default. L'autocorrelation spatiale dépend du paramètre __env1Scale__ (entre 0 et 1000). 
 
-Niche : auto ou manuel (optima_spacing, env_niche_breadth, min_env, max_env, env_optima, env1Scale)
-
-+ Local dynamique : max_r
+La niche fondamentale des espèces peut être définie automatiquement (si __env_optima__ n'est pas spécifié) ou manuellement. Si les niches sont définies automatiquement, l'argument __optima_spacing__ défini la manière dont les optimums sont tirés (soit aléatoirement, soit de manière uniforme - *random* vs. *even*). Sinon, un vecteur de la taille du nombre d'espèces donnent les valeurs des optimums pour chacune des espèces. Trois arguments supplémentaires peuvent être spécifiés : __max_env__ et __min_env__ donnent les valeurs minimales et maximales pour les optimums (lorsque tirés aléatoirement), et __env_niche_breadth__ donne l'étendue de la tolérance environnementale (peut être soit une valeur pour toutes les espèces, ou un vecteur de la taille du nombre d'espèces). Le taux de croissance effectif au sein d'un patch est une fonction Gaussienne du gradient envionnemental (et indépendant de la densité locale). Le taux de croissance maximal étant défini par l'argument __max_r__. (voir Eq. 2 dans Thompson et al. 2020).
 
 ### Landscape and dispersal
 

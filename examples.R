@@ -9,7 +9,7 @@ N_species=3
 
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2,
-                temporal_autocorr = F, env1Scale = 50,
+                temporal_autocorr = F, env1Scale = 1,
                 env_niche_breadth = 0.05, env_optima = c(0.5,0.5,0.5),
                 int_mat = matrix(c(0.5,0.0,0.0,
                                    0.0,0.5,0.5,
@@ -19,17 +19,9 @@ t = simulate_MC(N_patch, species = N_species,
                 timesteps = 500, burn_in = 100, initialization = 0)
 
 ### Check spatial autocorrelation
-
-ndt_spat = t$env.df %>% filter(time_run == t$env.df$time_run[1]) %>% select(env1, patch) %>%
-  left_join(t$landscape %>% as_tibble() %>% rownames_to_column(var="patch") %>% mutate_at("patch", as.numeric))
-
-ggplot(ndt_spat, aes(x=x, y=y, color = env1))+
-  geom_point()+
-  scale_color_gradient2(low = "blue", mid = "white", high = 'red', midpoint = 0.5)+
-  theme_classic()
+plots_envt(t)
 
 #### Transform output ####
-
 abundances = sim_to_matrix(t)
 occupancies = abund_to_occ(abundances)
 
