@@ -60,6 +60,9 @@ abund_to_occ = function(abundances){
 #' @export
 #'
 plots_occupancies = function(occupancies){
+  if( !all(unique(as.vector(occupancies)) <= 1) ){
+    stop("Matrix is not a occurences matrix (values > 1)")
+  }
   occupancies = apply(occupancies, c(1,3), sum) / dim(occupancies)[2]
   occupancies = occupancies %>% as_tibble() %>% rowid_to_column("species") %>%
     pivot_longer(-species) %>%
