@@ -28,6 +28,23 @@ occupancies = abund_to_occ(abundances)
 ## Plots occupancies
 plots_occupancies(occupancies)
 
+## Plots in time
+n_steps = length(unique(t$dynamics.df$time))
+for(i in seq(1,n_steps,n_steps/10)){
+  snapshot = t(abundances[,,i])
+  
+  tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
+  for(j in 1:N_species)
+    tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
+  
+  ggplot(data = tp_)+
+    geom_point(aes(x=x,y=y), size = 9, shape = 1)+
+    geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
+    theme_bw()
+  
+  ggsave(filename = paste0('p_', i, '.jpeg'))
+}
+
 #### C-score #### (on occupancies)
 
 position_  = 400
