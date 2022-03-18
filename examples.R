@@ -1,6 +1,8 @@
 library(tidyverse)
 library(ecospat)
 library(TMDSpatial)
+library(vegan)
+library(scatterpie)
 
 #### Simulate data ####
 
@@ -57,8 +59,6 @@ ecospat.Cscore(as.data.frame(snapshot), nperm = 1000, outpath = "./outputs/", ve
 
 
 #### Var. part ####
-
-library(vegan)
 
 snapshot = t(abundances[,,position_])
 
