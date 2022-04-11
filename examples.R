@@ -6,13 +6,13 @@ library(scatterpie)
 
 #### Simulate data ####
 
-N_patch = 500
+N_patch = 400
 N_species=3
 
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2,
                 temporal_autocorr = F, env1Scale = 1,
-                env_niche_breadth = 0.5, env_optima = c(0.5,0.5,0.5),
+                env_niche_breadth = 0.1, env_optima = c(0.2,0.5,0.8),
                 int_mat = matrix(c(0.5,0.0,0.0,
                                    0.0,0.5,0.5,
                                    0.0,0.5,0.5), byrow = T, nrow = 3),
@@ -49,7 +49,7 @@ for(i in seq(1,n_steps,n_steps/10)){
 
 #### C-score #### (on occupancies)
 
-position_  = 400
+position_  = 350
 snapshot = t(occupancies[,,position_])
 
 # Need at least one co-occ...
@@ -61,18 +61,24 @@ ecospat.Cscore(as.data.frame(snapshot), nperm = 1000, outpath = "./outputs/", ve
 #### Var. part ####
 
 snapshot = t(abundances[,,position_])
+envt_data = data.frame(env1 = t$env.df$env1[1:N_patch])
+envt_data = as.data.frame(scale(envt_data))
 
 mod = varpart(snapshot,
               ~.,
               pcnm(dist(t$landscape))$vectors,
-              data = data.frame(env1 = t$env.df$env1[1:N_patch]), transfo = 'hel')
+              data = envt_data, transfo = 'hel')
 mod
 
 showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
 
+afrac = rda(decostand(snapshot, "hel") ~ env1, data = envt_data)
+afrac
+plot(afrac)
+
 afrac = rda(decostand(snapshot, "hel"),
-            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1],
+            model.matrix(~., envt_data)[,-1],
             pcnm(dist(t$landscape))$vectors)
 anova(afrac, step = 200, perm.max = 200)
 
