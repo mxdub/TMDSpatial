@@ -59,6 +59,8 @@ ecospat.Cscore(as.data.frame(snapshot), nperm = 1000, outpath = "./outputs/", ve
 # Constrained C-scores -  by envt.
 ecospat.cons_Cscore(...)
 
+# Utiliser cooc_null_model() de EcoSimR plutôt !
+
 #### Var. part ####
 
 snapshot = t(abundances[,,position_])
