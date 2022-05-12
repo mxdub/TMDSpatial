@@ -56,7 +56,8 @@ snapshot = t(occupancies[,,position_])
 # If observed C-score > expected C-score : competition, otherwise, "something else".
 ecospat.Cscore(as.data.frame(snapshot), nperm = 1000, outpath = "./outputs/", verbose = T)
 
-
+# Constrained C-scores -  by envt.
+ecospat.cons_Cscore(...)
 
 #### Var. part ####
 
