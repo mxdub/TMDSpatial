@@ -12,7 +12,7 @@ N_species=3
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 2,
                 temporal_autocorr = F, env1Scale = 1,
-                env_niche_breadth = 0.1, env_optima = c(0.2,0.5,0.8),
+                env_niche_breadth = 0.1, env_optima = c(0.3,0.5,0.7),
                 int_mat = matrix(c(0.5,0.0,0.0,
                                    0.0,0.5,0.5,
                                    0.0,0.5,0.5), byrow = T, nrow = 3),
@@ -20,8 +20,18 @@ t = simulate_MC(N_patch, species = N_species,
                 extirp_prob = c(0),
                 timesteps = 500, burn_in = 100, initialization = 0)
 
+N_patch = 250
+N_species=25
+t = simulate_MC(N_patch, species = N_species,
+                timesteps = 500, burn_in = 100, initialization = 0, env_niche_breadth = 0.2,
+                env1Scale = 1, kernel_exp = 0.001, dispersal=0.001)
+
 ### Check spatial autocorrelation
 plots_envt(t)
+
+### Gather environmental & geo info
+data_geo = t$landscape %>% as_tibble()
+data_envt = tibble( env1 = t$env.df$env1[1:N_patch] ) # We assume no temporal variability for envt., so only keep data for first year
 
 #### Transform output ####
 abundances = sim_to_matrix(t)
@@ -30,77 +40,228 @@ occupancies = abund_to_occ(abundances)
 ## Plots occupancies
 plots_occupancies(occupancies)
 
-## Plots in time
-n_steps = length(unique(t$dynamics.df$time))
-for(i in seq(1,n_steps,n_steps/10)){
-  snapshot = t(abundances[,,i])
-  
-  tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
-  for(j in 1:N_species)
-    tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
-  
-  ggplot(data = tp_)+
-    geom_point(aes(x=x,y=y), size = 9, shape = 1)+
-    geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
-    theme_bw()
-  
-  ggsave(filename = paste0('p_', i, '.jpeg'))
-}
+# ## Plots in time
+# n_steps = length(unique(t$dynamics.df$time))
+# for(i in seq(1,n_steps,n_steps/10)){
+#   snapshot = t(abundances[,,i])
+#   
+#   tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
+#   for(j in 1:N_species)
+#     tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
+#   
+#   ggplot(data = tp_)+
+#     geom_point(aes(x=x,y=y), size = 9, shape = 1)+
+#     geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
+#     theme_bw()
+#   
+#   ggsave(filename = paste0('p_', i, '.jpeg'))
+# }
 
-#### C-score #### (on occupancies)
 
+
+
+## Get Snapshot
 position_  = 350
-snapshot = t(occupancies[,,position_])
+snapshot_occ = t(occupancies[,,position_]) %>% as_tibble()
+snapshot_abund = t(abundances[,,position_]) %>% as_tibble()
 
-# Need at least one co-occ...
-# If observed C-score > expected C-score : competition, otherwise, "something else".
-ecospat.Cscore(as.data.frame(snapshot), nperm = 1000, outpath = "./outputs/", verbose = T)
 
-# Constrained C-scores -  by envt.
-ecospat.cons_Cscore(...)
+## SAR
+# compute_sa = function(comm, pos, i_min = 2, i_max = 10, max_plot = 10){
+#   splits = i_min:i_max
+#   
+#   results = tibble(area = numeric(), S = numeric())
+#   
+#   for(i in splits){
+#     
+#     bands = 100 / i
+#     start = bands / 2
+#     end = 100 - start
+#     centers = seq(start, end, bands)
+#     
+#     grid = expand.grid(x = centers, y = centers) %>% as_tibble()
+#     grid = grid %>% slice( sample(1:dim(grid)[1], min(dim(grid)[1], max_plot)) )
+#     
+#     r = (bands / 2) * 0.95
+#     
+#     S = grid %>% mutate(S = map2_dbl(x, y,
+#                                      .f = function(x, y) {  s = sqrt( (x-pos$x)^2+(y-pos$y)^2 ) <= r; sum(apply(comm[s,], 2, any))})) %>%
+#       pull(S)
+#     
+#     results = results %>% add_row(area = 3.14*r^2, S = S )
+#   }
+#   
+#   results
+# }
+# 
+# sar = compute_sa(snapshot_occ, pos = data_geo)
+# 
+# ggplot(sar, aes(x=log(area), y=S))+geom_point()
+# 
+# fit <- sar_average(data = sar, grid_start = "none")
+# summary(fit)
+# plot(fit)
 
-# Utiliser cooc_null_model() de EcoSimR plut√¥t !
+# Bray-Curtis : si les diffÈrences absolue d'abondances sont importantes
+# Hellinger (transfo) : si diff. relatives d'abondances sont diffÈrentes et espËce communes plus importantes
+# Chi2 : diff. relatives + espËces rares
 
 #### Var. part ####
 
-snapshot = t(abundances[,,position_])
-envt_data = data.frame(env1 = t$env.df$env1[1:N_patch])
-envt_data = as.data.frame(scale(envt_data))
+# Space description 
+pcnms = scores(pcnm(dist(data_geo))) 
 
-mod = varpart(snapshot,
-              ~.,
-              pcnm(dist(t$landscape))$vectors,
-              data = envt_data, transfo = 'hel')
+# Select pcnms
+mod0 = rda(decostand(snapshot_abund, "hel") ~ 1, data = as_tibble(pcnms))
+mod1 = rda(decostand(snapshot_abund, "hel") ~ ., data = as_tibble(pcnms))
+os = ordistep(mod0, scope = formula(mod1))
+# Which pcnm :
+pcnm_tokeep = names(os$terminfo$ordered)
+
+pcnms_reduced = pcnms[,pcnm_tokeep]
+pcnms_reduced = pcnms
+
+mod = varpart(snapshot_abund,
+              ~env1+I(env1^2),
+              pcnms_reduced,
+              data = data_envt, transfo = 'hel')
 mod
 
-showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
 
-afrac = rda(decostand(snapshot, "hel") ~ env1, data = envt_data)
-afrac
-plot(afrac)
+# Environmental table 
+frac_envt = rda(decostand(snapshot_abund, "hel")~env1+I(env1^2),
+                data = data_envt)
+frac_envt
+anova(frac_envt)
 
-afrac = rda(decostand(snapshot, "hel"),
-            model.matrix(~., envt_data)[,-1],
-            pcnm(dist(t$landscape))$vectors)
-anova(afrac, step = 200, perm.max = 200)
+# Geo. table
+frac_geo  = rda(decostand(snapshot_abund, "hel")~pcnms_reduced,
+                data = data_envt)
+frac_geo
+anova(frac_geo)
 
-afrac = rda(decostand(snapshot, "hel"),
-            pcnm(dist(t$landscape))$vectors,
-            model.matrix(~., data.frame(env1 = t$env.df$env1[1:N_patch]))[,-1])
-anova(afrac, step = 200, perm.max = 200)
+
+# Envt indp from space
+frac_envt_idp = rda(decostand(snapshot_abund, "hel")~env1+I(env1^2)+Condition(pcnms_reduced),
+                data = data_envt)
+frac_envt_idp
+anova(frac_envt_idp)
+
+# Space indp from envt
+frac_geo_idp  = rda(decostand(snapshot_abund, "hel")~Condition(env1+I(env1^2))+pcnms_reduced,
+            data = data_envt)
+frac_geo_idp
+anova(frac_geo_idp)
 
 
 # BrayCurtis
 
-mod = varpart(vegdist(snapshot, method = "bray"),
-              ~.,
-              pcnm(dist(t$landscape))$vectors,
-              data = data.frame(env1 = t$env.df$env1[1:N_patch]))
+mod0 = capscale(snapshot_abund ~ 1 ,data = as_tibble(pcnms), dist = 'bray')
+mod1 = capscale(snapshot_abund ~ . ,data = as_tibble(pcnms), dist = 'bray')
+os = ordistep(mod0, scope = formula(mod1))
+# Which pcnm :
+pcnm_tokeep = names(os$terminfo$ordered)
+pcnms_reduced = pcnms[,pcnm_tokeep]
+
+mod = varpart(vegdist(snapshot_abund, method = "bray"),
+              ~env1+I(env1^2),
+              pcnms_reduced,
+              data = data_envt)
 mod
 
-showvarparts(2, bg = c("hotpink","skyblue"))
 plot(mod, bg = c("hotpink","skyblue"))
+
+
+# Environmental table 
+frac_envt = dbrda(snapshot_abund ~ env1+I(env1^2),data = data_envt, dist = 'bray')
+frac_envt
+RsquareAdj(frac_envt)
+anova(frac_envt)
+
+# Geo. table
+frac_geo  = dbrda(snapshot_abund ~ pcnms_reduced, dist = 'bray')
+frac_geo
+RsquareAdj(frac_geo)
+anova(frac_geo)
+
+# Envt indp from space
+frac_envt_idp = dbrda(snapshot_abund ~ env1+I(env1^2)+Condition(pcnms_reduced),data = data_envt, dist = 'bray')
+frac_envt_idp
+anova(frac_envt_idp)
+
+# Space indp from envt
+frac_geo_idp  = dbrda(snapshot_abund ~ Condition(env1+I(env1^2))+pcnms_reduced,data = data_envt, dist = 'bray')
+frac_geo_idp
+anova(frac_geo_idp)
+
+
+# ChiSquare
+
+mod0 = cca(snapshot_abund ~ 1 ,data = as_tibble(pcnms))
+mod1 = cca(snapshot_abund ~ . ,data = as_tibble(pcnms))
+os = ordistep(mod0, scope = formula(mod1))
+# Which pcnm :
+pcnm_tokeep = names(os$terminfo$ordered)
+pcnms_reduced = pcnms[,pcnm_tokeep]
+
+# Caution, empty site are not allow in CCA (zero division)
+to_delete = which(apply(snapshot_abund, 1, sum) == 0)
+snapshot_abund=snapshot_abund[-to_delete,]
+pcnms_reduced=pcnms_reduced[-to_delete,]
+data_envt=data_envt[-to_delete,]
+
+mod = varpart(snapshot_abund,
+              ~env1+I(env1^2),
+              pcnms_reduced,
+              data = data_envt, chisquare = T)
+mod
+
+plot(mod, bg = c("hotpink","skyblue"))
+
+# Environmental table 
+frac_envt = cca(snapshot_abund ~ env1+I(env1^2),data = data_envt)
+frac_envt
+anova(frac_envt)
+
+# Geo. table
+frac_geo  = cca(snapshot_abund ~ pcnms_reduced)
+frac_geo
+anova(frac_geo)
+
+# Envt indp from space
+frac_envt_idp = cca(snapshot_abund ~ env1+I(env1^2)+Condition(pcnms_reduced),data = data_envt)
+frac_envt_idp
+anova(frac_envt_idp)
+
+# Space indp from envt
+frac_geo_idp  = cca(snapshot_abund ~ Condition(env1+I(env1^2))+pcnms_reduced,data = data_envt)
+frac_geo_idp
+anova(frac_geo_idp)
+
+
+#### C-score #### (on occupancies)
+
+# Need at least one co-occ...
+# If observed C-score > expected C-score : competition, otherwise, "something else".
+ecospat.Cscore(snapshot, nperm = 1000, outpath = "./outputs/", verbose = T)
+
+# Constrained C-scores -  by envt.
+
+# Fit glm (with quadratic effect - remember, envt effect on fitness is Gaussian)
+inv.logit = function(x) 1/(1+exp(-x))
+preds = tibble(dummy = rep(NA, N_patch))
+for(i in 1:dim(snapshot)[2])
+  preds = preds %>% add_column(!!colnames(snapshot)[i] := inv.logit(predict(glm(snapshot %>% pull(i)~ env1 + I(env1^2), family = 'binomial', data = data_envt))))
+preds = preds %>% select(-dummy)
+
+# Constrainted cscore
+ecospat.cons_Cscore(snapshot,
+                    pred = preds, nperm = 1000, outpath = "./outputs/", verbose = T)
+
+# Utiliser cooc_null_model() de EcoSimR plut√¥t !
+m = EcoSimR::cooc_null_model(snapshot)
+summary(m)
 
 #### JSDM (HMSC) ####
 
@@ -128,7 +289,7 @@ m = sampleMcmc(m, samples = 1000, nChains = 3, nParallel = 3)
 preds = computePredictedValues(m)
 evaluateModelFit(hM = m, predY = preds)
 
-computeAssociations(m)
+computeAssociations(m)[[1]]$support
 Hmsc::getPostEstimate(m, "Beta")
 
 # With Poisson
@@ -293,112 +454,3 @@ jm = as.mcmc(jm)
 
 jm[[1]][,c(8,1,2)]
 jm[[1]][,c(9,3,4)]
-
-
-#### Testing exec time
-library(profvis)
-profvis({
-  simulate_MC <- function(patches, species, dispersal = 0.01,
-                          plot = TRUE,
-                          torus = FALSE, kernel_exp = 0.1,
-                          env1Scale = 500, temporal_autocorr = TRUE, timesteps = 1200, burn_in = 800, initialization = 200,
-                          max_r = 5, min_env = 0, max_env = 1, env_niche_breadth = 0.5, optima_spacing = "random",
-                          intra = 1, min_inter = 0, max_inter = 1, comp_scaler = 0.05,
-                          extirp_prob = 0, extirp_all_pop = F,
-                          landscape, disp_mat, env.df, env_optima, int_mat){
-    if (missing(landscape)){
-      landscape <- landscape_generate(patches = patches, plot = plot)
-    } else {
-      landscape <- landscape_generate(patches = patches, xy = landscape, plot = plot)
-    }
-
-    if (missing(disp_mat)){
-      disp_mat <- dispersal_matrix(landscape = landscape,torus = torus, kernel_exp = kernel_exp, plot = plot)
-    } else {
-      disp_mat <- dispersal_matrix(landscape = landscape, disp_mat = disp_mat, torus = torus, kernel_exp = kernel_exp, plot = plot)
-    }
-
-    if (missing(env.df)){
-      env.df <- env_generate_wrp(landscape = landscape, env1Scale = env1Scale, temporal_autocorr = temporal_autocorr, timesteps = timesteps+burn_in, plot = plot)
-    } else {
-      env.df <- env_generate_wrp(landscape = landscape, env.df = env.df, env1Scale = env1Scale, temporal_autocorr = temporal_autocorr, timesteps = timesteps+burn_in, plot = plot)
-    }
-
-    if (missing(env_optima)){
-      env_traits.df <- env_traits(species = species, max_r = max_r, min_env = min_env, max_env = max_env, env_niche_breadth = env_niche_breadth, optima_spacing = optima_spacing, plot = plot)
-    } else {
-      env_traits.df <- env_traits(species = species, max_r = max_r, min_env = min_env, max_env = max_env, env_niche_breadth = env_niche_breadth, optima_spacing = optima_spacing, optima = env_optima, plot = plot)
-    }
-
-    if (missing(int_mat)){
-      int_mat <- species_int_mat(species = species, intra = intra, min_inter = min_inter, max_inter = max_inter, comp_scaler = comp_scaler, plot = TRUE)
-    } else {
-      int_mat <- species_int_mat(species = species, int_mat = int_mat, intra = intra, min_inter = min_inter, max_inter = max_inter, comp_scaler = comp_scaler, plot = TRUE)
-    }
-
-    dynamics.df <- list()
-    N <- matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
-    pb <- txtProgressBar(min = 0, max = initialization + burn_in + timesteps, style = 3)
-    for(i in 1:(initialization + burn_in + timesteps)){
-      if(i <= initialization){
-        if(i %in% seq(10,100, by = 10)){
-          N <- N + matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
-        }
-        env <- env.df$env1[env.df$time == 1]
-      } else {
-        env <- env.df$env1[env.df$time == (i-initialization)]
-      }
-
-      r <- max_r*exp(-(t((env_traits.df$optima - matrix(rep(env, each = species), nrow = species, ncol = patches))/(2*env_traits.df$env_niche_breadth)))^2)
-      N_hat <- N*r/(1+N%*%int_mat)
-      N_hat[N_hat < 0] <- 0
-      N_hat <- matrix(rpois(n = species*patches, lambda = N_hat), ncol = species, nrow = patches)
-
-      E <- matrix(rbinom(n = patches * species, size = N_hat, prob = rep(dispersal, each = patches)), nrow = patches, ncol = species)
-      dispSP <- colSums(E)
-      I_hat_raw <- disp_mat%*%E
-      I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
-      I_hat[is.nan(I_hat)] <- 1
-      I <- sapply(1:species, function(x) {
-        if(dispSP[x]>0){
-          table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
-        } else {rep(0, patches)}
-      })
-
-      N <- N_hat - E + I
-
-      if(extirp_all_pop){
-        N[rbinom(n = patches, size = 1, prob = extirp_prob)>0,] <- 0
-      }else{
-        N[rbinom(n = species * patches, size = 1, prob = extirp_prob)>0] <- 0
-      }
-
-      dynamics.df[[i]] = data.frame(N = c(N), patch = 1:patches, species = rep(1:species, each = patches), env = env, time = i-initialization-burn_in)
-      setTxtProgressBar(pb, i)
-    }
-    close(pb)
-    dynamics.df = do.call(rbind, dynamics.df) %>% left_join(env_traits.df)
-    env.df$time_run <- env.df$time - burn_in
-
-    env.df_init <- data.frame(env1 = env.df$env1[env.df$time == 1], patch = 1:patches, time = NA, time_run = rep(seq(-(burn_in + initialization), -burn_in, by = 1), each = patches))
-    env.df <- rbind(env.df_init,env.df)
-
-    if(plot == TRUE){
-      sample_patches <- sample(1:patches, size = min(c(patches,6)), replace = FALSE)
-      g <- dynamics.df %>%
-        filter(time %in% seq(min(dynamics.df$time),max(dynamics.df$time), by =10)) %>%
-        filter(patch %in% sample_patches) %>%
-        ggplot(aes(x = time, y = N, group = species, color = optima))+
-        geom_line()+
-        facet_wrap(~patch)+
-        scale_color_viridis_c()+
-        geom_path(data = filter(env.df, patch %in% sample_patches), aes(y = -5, x = time_run, color = env1, group = NULL), size = 3)
-
-      print(g)
-    }
-
-    return(list(dynamics.df = dynamics.df, landscape = landscape, env.df = env.df, env_traits.df = env_traits.df, disp_mat = disp_mat, int_mat = int_mat))
-  }
-  simulate_MC(1000,30,temporal_autocorr = F)
-})
-
