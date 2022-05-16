@@ -6,25 +6,80 @@ library(scatterpie)
 
 #### Simulate data ####
 
-N_patch = 400
-N_species=3
+N_patch = 100
+N_species=10
 
+# Case : NO envt control, limited dispersal & NO envt autocorrelation
 t = simulate_MC(N_patch, species = N_species,
-                min_inter = 0, max_inter = 2,
+                min_inter = 0, max_inter = 0.8,
                 temporal_autocorr = F, env1Scale = 1,
-                env_niche_breadth = 0.1, env_optima = c(0.3,0.5,0.7),
-                int_mat = matrix(c(0.5,0.0,0.0,
-                                   0.0,0.5,0.5,
-                                   0.0,0.5,0.5), byrow = T, nrow = 3),
-                dispersal = 0.01, kernel_exp = 0.001,
-                extirp_prob = c(0),
-                timesteps = 500, burn_in = 100, initialization = 0)
+                env_niche_breadth = 1,
+                dispersal = 0.01, kernel_exp = 0.2,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100)
 
-N_patch = 250
-N_species=25
+# Case : envt control, limited dispersal & NO envt autocorrelation
 t = simulate_MC(N_patch, species = N_species,
-                timesteps = 500, burn_in = 100, initialization = 0, env_niche_breadth = 0.2,
-                env1Scale = 1, kernel_exp = 0.001, dispersal=0.001)
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 1,
+                env_niche_breadth = 0.1,
+                dispersal = 0.01, kernel_exp = 0.2,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100)
+
+# Case : NO envt control, limited dispersal &  envt autocorrelation
+t = simulate_MC(N_patch, species = N_species,
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 999,
+                env_niche_breadth = 1,
+                dispersal = 0.01, kernel_exp = 0.2,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100)
+
+# Case : envt control, limited dispersal & envt autocorrelation
+t = simulate_MC(N_patch, species = N_species,
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 999,
+                env_niche_breadth = 0.1,
+                dispersal = 0.01, kernel_exp = 0.2,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100, initialization = 0, local_start = F)
+
+# Case : NO envt control, NO limited dispersal & NO envt autocorrelation
+t = simulate_MC(N_patch, species = N_species,
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 1,
+                env_niche_breadth = 1,
+                dispersal = 0.01, kernel_exp = 0.01,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100, initialization = 0, local_start = F)
+
+# Case : envt control, NO limited dispersal & NO envt autocorrelation
+t = simulate_MC(N_patch, species = N_species,
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 1,
+                env_niche_breadth = 0.1,
+                dispersal = 0.01, kernel_exp = 0.01,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100, initialization = 0, local_start = F)
+
+# Case : NO envt control, NO limited dispersal & envt autocorrelation
+t = simulate_MC(N_patch, species = N_species,
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 999,
+                env_niche_breadth = 1,
+                dispersal = 0.01, kernel_exp = 0.01,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100, initialization = 0, local_start = F)
+
+# Case : envt control, NO limited dispersal & envt autocorrelation
+t = simulate_MC(N_patch, species = N_species,
+                min_inter = 0, max_inter = 0.8,
+                temporal_autocorr = F, env1Scale = 999,
+                env_niche_breadth = 0.1,
+                dispersal = 0.01, kernel_exp = 0.01,
+                extirp_prob = c(0.05),
+                timesteps = 200, burn_in = 100, initialization = 0, local_start = F)
 
 ### Check spatial autocorrelation
 plots_envt(t)
@@ -41,27 +96,27 @@ occupancies = abund_to_occ(abundances)
 plots_occupancies(occupancies)
 
 # ## Plots in time
-# n_steps = length(unique(t$dynamics.df$time))
-# for(i in seq(1,n_steps,n_steps/10)){
-#   snapshot = t(abundances[,,i])
-#   
-#   tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
-#   for(j in 1:N_species)
-#     tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
-#   
-#   ggplot(data = tp_)+
-#     geom_point(aes(x=x,y=y), size = 9, shape = 1)+
-#     geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
-#     theme_bw()
-#   
-#   ggsave(filename = paste0('p_', i, '.jpeg'))
-# }
+n_steps = length(unique(t$dynamics.df$time))
+for(i in seq(1,n_steps,n_steps/10)){
+  snapshot = t(abundances[,,i])
+
+  tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
+  for(j in 1:N_species)
+    tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
+
+  ggplot(data = tp_)+
+    geom_point(aes(x=x,y=y), size = 9, shape = 1)+
+    geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
+    theme_bw()
+
+  ggsave(filename = paste0('p_', i, '.jpeg'))
+}
 
 
 
 
 ## Get Snapshot
-position_  = 350
+position_  = 200
 snapshot_occ = t(occupancies[,,position_]) %>% as_tibble()
 snapshot_abund = t(abundances[,,position_]) %>% as_tibble()
 
@@ -102,9 +157,9 @@ snapshot_abund = t(abundances[,,position_]) %>% as_tibble()
 # summary(fit)
 # plot(fit)
 
-# Bray-Curtis : si les différences absolue d'abondances sont importantes
-# Hellinger (transfo) : si diff. relatives d'abondances sont différentes et espèce communes plus importantes
-# Chi2 : diff. relatives + espèces rares
+# Bray-Curtis : si les diff?rences absolue d'abondances sont importantes
+# Hellinger (transfo) : si diff. relatives d'abondances sont diff?rentes et esp?ce communes plus importantes
+# Chi2 : diff. relatives + esp?ces rares
 
 #### Var. part ####
 
@@ -164,6 +219,12 @@ os = ordistep(mod0, scope = formula(mod1))
 pcnm_tokeep = names(os$terminfo$ordered)
 pcnms_reduced = pcnms[,pcnm_tokeep]
 
+# For Bray-Curtis & Chi2 - no empty patch allows (zero division)
+to_remove = which(apply(snapshot_abund, 1, sum) == 0)
+snapshot_abund = snapshot_abund[-to_remove,] 
+data_envt = data_envt[-to_remove,]
+pcnms_reduced = pcnms_reduced[-to_remove,]
+
 mod = varpart(vegdist(snapshot_abund, method = "bray"),
               ~env1+I(env1^2),
               pcnms_reduced,
@@ -205,11 +266,6 @@ os = ordistep(mod0, scope = formula(mod1))
 pcnm_tokeep = names(os$terminfo$ordered)
 pcnms_reduced = pcnms[,pcnm_tokeep]
 
-# Caution, empty site are not allow in CCA (zero division)
-to_delete = which(apply(snapshot_abund, 1, sum) == 0)
-snapshot_abund=snapshot_abund[-to_delete,]
-pcnms_reduced=pcnms_reduced[-to_delete,]
-data_envt=data_envt[-to_delete,]
 
 mod = varpart(snapshot_abund,
               ~env1+I(env1^2),
@@ -346,111 +402,97 @@ nm2$model_par$Sigma
 nm$BIC
 nm2$BIC
 
-
-#### MP mod. (unmarked) ####
-
-library(unmarked)
-N <- 1000
-nspecies <- 3
-J <- 5
-
-occ_covs <- as.data.frame(matrix(rnorm(N * 10),ncol=10))
-names(occ_covs) <- paste('occ_cov',1:10,sep='')
-
-det_covs <- list()
-for (i in 1:nspecies){
-  det_covs[[i]] <- matrix(rnorm(N*J),nrow=N)
-}
-names(det_covs) <- paste('det_cov',1:nspecies,sep='')
-
-#True vals
-beta <- c(0.5,0.2,0.4,0.5,-0.1,-0.3,0.2,0.1,-1,0.1)
-f1 <- beta[1] + beta[2]*occ_covs$occ_cov1
-f2 <- beta[3] + beta[4]*occ_covs$occ_cov2
-f3 <- beta[5] + beta[6]*occ_covs$occ_cov3
-f4 <- beta[7]
-f5 <- beta[8]
-f6 <- beta[9]
-f7 <- beta[10]
-f <- cbind(f1,f2,f3,f4,f5,f6,f7)
-z <- expand.grid(rep(list(1:0),nspecies))[,nspecies:1]
-colnames(z) <- paste('sp',1:nspecies,sep='')
-dm <- model.matrix(as.formula(paste0("~.^",nspecies,"-1")),z)
-
-psi <- exp(f %*% t(dm))
-psi <- psi/rowSums(psi)
-
-#True state
-ztruth <- matrix(NA,nrow=N,ncol=nspecies)
-for (i in 1:N){
-  ztruth[i,] <- as.matrix(z[sample(8,1,prob=psi[i,]),])
-}
-
-p_true <- c(0.6,0.7,0.5)
-
-# fake y data
-y <- list()
-
-for (i in 1:nspecies){
-  y[[i]] <- matrix(NA,N,J)
-  for (j in 1:N){
-    for (k in 1:J){
-      y[[i]][j,k] <- rbinom(1,1,ztruth[j,i]*p_true[i])
-    }
-  }
-}
-names(y) <- c('coyote','tiger','bear')
-
-#Create the unmarked data object
-data = unmarkedFrameOccuMulti(y=y,siteCovs=occ_covs,obsCovs=det_covs)
-
-#Summary of data object
-summary(data)
-plot(data)
-
-#### MP mod. (hand-made) ####
+### Occupancy model
 
 library(R2jags)
 
-occupancies = occ
-occupancies[occ>0]=1
-occupancies = occupancies[,,seq(1,200,length.out = 20)]
-occupancies = structure(occupancies, .Dim = c(1,N_patch,20))
+serie_length = 20
+start_point = 10
+obs = occupancies[,,start_point:(start_point+serie_length-1)]
+obs = obs[1,,]
 
-n_sp = dim(occupancies)[1]
-n_site = dim(occupancies)[2]
-n_year = dim(occupancies)[3]
+n_site = dim(obs)[2]
+n_year = dim(obs)[3]
 
-datax <- list(obs = occupancies,
-              p = occupancies,
-              X= cbind(XData$env1, XData$env1^2),
-              mask = 1-diag(rep(1,n_sp)),
-              n_site = n_site,
-              n_year = n_year,
-              n_sp = n_sp)
+datax <- list(obs = obs,
+              n_site = dim(obs)[1],
+              n_year = dim(obs)[2])
 
-inits <- list(list(mu_g = rnorm(n_sp), mu_e = rnorm(n_sp),
-                   beta_g = matrix(rnorm(n_sp*2), nrow = n_sp),
-                   beta_e = matrix(rnorm(n_sp*2), nrow = n_sp),
-                   delta_g = matrix(rnorm(n_sp*n_sp), nrow = n_sp),
-                   delta_e = matrix(rnorm(n_sp*n_sp), nrow = n_sp)))
+x = obs
+x[is.na(x)] = sample(c(0,1), sum(is.na(x)), replace = T)
+inits = list(list(x = x))
 
-parameters <- c("mu_g","mu_e",
-                "beta_g","beta_e",
-                "delta_g", "delta_e")
+parameters <- c('e', 'c', 'psi', 'detec')
 
-
-jm = jags.parallel(model.file = "../../models/mod1",
+jm = jags(model.file = "./MacKenzie_mp.txt",
           data = datax,
-          n.chains = 3,
           inits = inits,
-          n.iter = 5000,
-          n.burnin = 1000,
+          n.chains = 1,
+          n.iter = 1000,
+          n.burnin = 500,
           n.thin = 5,
           parameters.to.save = parameters)
-jm
-plot(jm)
-jm = as.mcmc(jm)
+# traceplot(jm)
 
-jm[[1]][,c(8,1,2)]
-jm[[1]][,c(9,3,4)]
+e = jm$BUGSoutput$sims.list$e
+c = jm$BUGSoutput$sims.list$c
+
+
+n_rep = 50
+rep = matrix(0, ncol = serie_length, nrow = n_rep)
+for(r in 1:n_rep){
+  z = obs
+  for(i in 2:serie_length)
+    z[,i] = sapply(z[,i-1]*(1-sample(e, 1))+(1-z[,i-1])*sample(gamma, 1), FUN = function(x) rbinom(1,1,x) )
+  rep[r,] = apply(z, 2, mean)
+}
+
+rep = as_tibble(rep) %>% 
+  add_rownames() %>%
+  pivot_longer(-rowname) %>% 
+  mutate(name = map_dbl(.x = name,
+                        .f = function(x) as.numeric(str_remove(x, 'V'))))
+
+obs_ = tibble(year = 1:serie_length,
+              x = apply(obs, 2, mean))
+
+ggplot(rep)+
+  geom_boxplot(aes(x = name, y = value, group = name))+
+  geom_point(data = obs_, aes(x=year, y = x), color = "red", size = 4)+
+  scale_y_continuous(limits = c(0,1))
+
+
+## Levins like
+
+parameters <- c('e', 'gamma', 'psi', 'detec')
+jm = jags(model.file = "./Levins_like.txt",
+          data = datax,
+            inits = inits,
+          n.chains = 1,
+          n.iter = 1000,
+          n.burnin = 500,
+          n.thin = 5,
+          parameters.to.save = parameters)
+# traceplot(jm)
+
+e = jm$BUGSoutput$sims.list$e
+gamma = jm$BUGSoutput$sims.list$gamma
+
+rep = matrix(0, ncol = serie_length, nrow = n_rep)
+for(r in 1:n_rep){
+  z = obs
+  for(i in 2:serie_length)
+    z[,i] = sapply(z[,i-1]*(1-sample(e, 1))+(1-z[,i-1])*(1-exp(-sample(gamma, 1)*mean(z[,i-1]))), FUN = function(x) rbinom(1,1,x) )
+  rep[r,] = apply(z, 2, mean)
+}
+
+rep = as_tibble(rep) %>% 
+  add_rownames() %>%
+  pivot_longer(-rowname) %>% 
+  mutate(name = map_dbl(.x = name,
+                        .f = function(x) as.numeric(str_remove(x, 'V'))))
+
+ggplot(rep)+
+  geom_boxplot(aes(x = name, y = value, group = name))+
+  geom_point(data = obs_, aes(x=year, y = x), color = "red", size = 4)+
+  scale_y_continuous(limits = c(0,1))

@@ -28,7 +28,9 @@
 #' @param comp_scaler value to multiply all competition coefficients by
 #' @param extirp_prob probability of local extirpation for each population in each time step (should be a very small value, e.g. 0 or 0.002)
 #' @param extirp_all_pop (logical - default False) should extirpation applied to all species in a patch (T) or to species/patch combination (F)
-#'
+#' @param local_start (logical - default False) Are species initially clustered spatially ?
+#' @param local_start_radius Radius in which initial species positions are initially clustered
+
 #' @param landscape optional dataframe with x and y columns for patch coordinates
 #' @param disp_mat optional matrix with each column specifying the probability that an individual disperses to each other patch (row)
 #' @param env.df optional dataframe with environmental conditions with columns: env1, patch, time
@@ -51,10 +53,10 @@
 simulate_MC <- function(patches, species, dispersal = 0.01,
                         plot = TRUE,
                         torus = FALSE, kernel_exp = 0.1,
-                        env1Scale = 500, temporal_autocorr = FALSE, timesteps = 1200, burn_in = 800, initialization = 200,
+                        env1Scale = 500, temporal_autocorr = FALSE, timesteps = 1200, burn_in = 800, initialization = 0,
                         max_r = 5, min_env = 0, max_env = 1, env_niche_breadth = 0.5, optima_spacing = "random",
                         intra = 1, min_inter = 0, max_inter = 1, comp_scaler = 0.05,
-                        extirp_prob = 0, extirp_all_pop = F,
+                        extirp_prob = 0, extirp_all_pop = F, local_start = F, local_start_radius = 15,
                         landscape, disp_mat, env.df, env_optima, int_mat){
   if (missing(landscape)){
     landscape <- landscape_generate(patches = patches, plot = plot)
@@ -87,7 +89,18 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
   }
 
   dynamics.df <- list()
-  N <- matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
+  if(local_start){
+    N <- matrix(0, nrow = patches, ncol = species)
+    dist_m = as.matrix(dist(landscape))
+    for(s in 1:species){
+      center = sample(1:patches, 1)
+      centers = dist_m[center,] < local_start_radius
+      N[centers, s] = rpois(sum(centers), lambda = 0.5)
+    }
+  }else{
+    N <- matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
+  }
+  
   pb <- txtProgressBar(min = 0, max = initialization + burn_in + timesteps, style = 3)
   for(i in 1:(initialization + burn_in + timesteps)){
     if(i <= initialization){
