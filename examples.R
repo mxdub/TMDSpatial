@@ -407,12 +407,16 @@ nm2$BIC
 library(R2jags)
 
 serie_length = 20
-start_point = 10
-obs = occupancies[,,start_point:(start_point+serie_length-1)]
-obs = obs[1,,]
+start_point = 150
+species = 7
 
-n_site = dim(obs)[2]
-n_year = dim(obs)[3]
+obs = occupancies[,,start_point:(start_point+serie_length-1)]
+obs = obs[species,,]
+
+plot(apply(occupancies[species,,], 2, mean), ylim = c(0,1))
+
+n_site = dim(obs)[1]
+n_year = dim(obs)[2]
 
 datax <- list(obs = obs,
               n_site = dim(obs)[1],
@@ -459,7 +463,8 @@ obs_ = tibble(year = 1:serie_length,
 ggplot(rep)+
   geom_boxplot(aes(x = name, y = value, group = name))+
   geom_point(data = obs_, aes(x=year, y = x), color = "red", size = 4)+
-  scale_y_continuous(limits = c(0,1))
+  scale_y_continuous(limits = c(0,1))+
+  theme_bw()
 
 
 ## Levins like
@@ -478,10 +483,13 @@ jm = jags(model.file = "./Levins_like.txt",
 e = jm$BUGSoutput$sims.list$e
 gamma = jm$BUGSoutput$sims.list$gamma
 
-rep = matrix(0, ncol = serie_length, nrow = n_rep)
+time_out_fit = 100
+
+rep = matrix(0, ncol = serie_length+time_out_fit, nrow = n_rep)
+z = matrix(0, ncol = serie_length+time_out_fit, nrow = n_site)
 for(r in 1:n_rep){
-  z = obs
-  for(i in 2:serie_length)
+  z[,1] = obs[,1]
+  for(i in 2:(serie_length+time_out_fit))
     z[,i] = sapply(z[,i-1]*(1-sample(e, 1))+(1-z[,i-1])*(1-exp(-sample(gamma, 1)*mean(z[,i-1]))), FUN = function(x) rbinom(1,1,x) )
   rep[r,] = apply(z, 2, mean)
 }
@@ -492,7 +500,12 @@ rep = as_tibble(rep) %>%
   mutate(name = map_dbl(.x = name,
                         .f = function(x) as.numeric(str_remove(x, 'V'))))
 
+obs_ = occupancies[species,,start_point:(start_point+serie_length-1+time_out_fit)]
+obs_ = tibble(year = 1:(serie_length+time_out_fit),
+              x = apply(obs_, 2, mean))
+
 ggplot(rep)+
   geom_boxplot(aes(x = name, y = value, group = name))+
   geom_point(data = obs_, aes(x=year, y = x), color = "red", size = 4)+
-  scale_y_continuous(limits = c(0,1))
+  scale_y_continuous(limits = c(0,1))+
+  theme_bw()
