@@ -58,10 +58,10 @@ t = simulate_MC(N_patch, species = N_species,
 t = simulate_MC(N_patch, species = N_species,
                 min_inter = 0, max_inter = 0.8,
                 temporal_autocorr = F, env1Scale = 1,
-                env_niche_breadth = 0.1,
+                env_niche_breadth = 0.15,
                 dispersal = 0.01, kernel_exp = 0.01,
                 extirp_prob = c(0.05),
-                timesteps = 200, burn_in = 100, initialization = 0, local_start = F)
+                timesteps = 200, burn_in = 100, initialization = 0, local_start = T)
 
 # Case : NO envt control, NO limited dispersal & envt autocorrelation
 t = simulate_MC(N_patch, species = N_species,
@@ -96,7 +96,7 @@ occupancies = abund_to_occ(abundances)
 plots_occupancies(occupancies)
 
 #### plot in time ######
-# ## Plots in time
+## Plots in time
 # n_steps = length(unique(t$dynamics.df$time))
 # for(i in seq(1,n_steps,n_steps/10)){
 #   snapshot = t(abundances[,,i])

@@ -95,7 +95,7 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
     for(s in 1:species){
       center = sample(1:patches, 1)
       centers = dist_m[center,] < local_start_radius
-      N[centers, s] = rpois(sum(centers), lambda = 0.5)
+      N[centers, s] = rpois(sum(centers), lambda = 1)
     }
   }else{
     N <- matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
