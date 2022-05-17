@@ -53,10 +53,10 @@
 simulate_MC <- function(patches, species, dispersal = 0.01,
                         plot = TRUE,
                         torus = FALSE, kernel_exp = 0.1,
-                        env1Scale = 500, temporal_autocorr = FALSE, timesteps = 1200, burn_in = 800, initialization = 0,
+                        env1Scale = 500, temporal_autocorr = FALSE, timesteps = 200, burn_in = 100, initialization = 0,
                         max_r = 5, min_env = 0, max_env = 1, env_niche_breadth = 0.5, optima_spacing = "random",
-                        intra = 1, min_inter = 0, max_inter = 1, comp_scaler = 0.05,
-                        extirp_prob = 0, extirp_all_pop = F, local_start = F, local_start_radius = 15,
+                        intra = 1, min_inter = 0, max_inter = 0.8, comp_scaler = 0.05,
+                        extirp_prob = 0.05, extirp_all_pop = F, local_start = F, local_start_radius = 15,
                         landscape, disp_mat, env.df, env_optima, int_mat){
   if (missing(landscape)){
     landscape <- landscape_generate(patches = patches, plot = plot)
@@ -146,19 +146,19 @@ simulate_MC <- function(patches, species, dispersal = 0.01,
   env.df_init <- data.frame(env1 = env.df$env1[env.df$time == 1], patch = 1:patches, time = NA, time_run = rep(seq(-(burn_in + initialization), -burn_in, by = 1), each = patches))
   env.df <- rbind(env.df_init,env.df)
 
-  if(plot == TRUE){
-    sample_patches <- sample(1:patches, size = min(c(patches,6)), replace = FALSE)
-    g <- dynamics.df %>%
-      filter(time %in% seq(min(dynamics.df$time),max(dynamics.df$time), by =10)) %>%
-      filter(patch %in% sample_patches) %>%
-      ggplot(aes(x = time, y = N, group = species, color = optima))+
-      geom_line()+
-      facet_wrap(~patch)+
-      scale_color_viridis_c()+
-      geom_path(data = filter(env.df, patch %in% sample_patches), aes(y = -5, x = time_run, color = env1, group = NULL), size = 3)
+  # if(plot == TRUE){
+  #   sample_patches <- sample(1:patches, size = min(c(patches,6)), replace = FALSE)
+  #   g <- dynamics.df %>%
+  #     filter(time %in% seq(min(dynamics.df$time),max(dynamics.df$time), by =10)) %>%
+  #     filter(patch %in% sample_patches) %>%
+  #     ggplot(aes(x = time, y = N, group = species, color = optima))+
+  #     geom_line()+
+  #     facet_wrap(~patch)+
+  #     scale_color_viridis_c()+
+  #     geom_path(data = filter(env.df, patch %in% sample_patches), aes(y = -5, x = time_run, color = env1, group = NULL), size = 3)
 
-    print(g)
-  }
+  #   print(g)
+  # }
 
   return(list(dynamics.df = dynamics.df, landscape = landscape, env.df = env.df, env_traits.df = env_traits.df, disp_mat = disp_mat, int_mat = int_mat))
 }

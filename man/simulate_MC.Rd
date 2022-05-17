@@ -13,8 +13,8 @@ simulate_MC(
   kernel_exp = 0.1,
   env1Scale = 500,
   temporal_autocorr = FALSE,
-  timesteps = 1200,
-  burn_in = 800,
+  timesteps = 200,
+  burn_in = 100,
   initialization = 0,
   max_r = 5,
   min_env = 0,
@@ -23,12 +23,12 @@ simulate_MC(
   optima_spacing = "random",
   intra = 1,
   min_inter = 0,
-  max_inter = 1,
+  max_inter = 0.8,
   comp_scaler = 0.05,
-  extirp_prob = 0,
+  extirp_prob = 0.05,
   extirp_all_pop = F,
-  local_start = T,
-  local_start_radius = 10,
+  local_start = F,
+  local_start_radius = 15,
   landscape,
   disp_mat,
   env.df,
@@ -81,7 +81,7 @@ simulate_MC(
 
 \item{extirp_all_pop}{(logical - default False) should extirpation applied to all species in a patch (T) or to species/patch combination (F)}
 
-\item{local_start}{(logical - default True) Are species initially clustered spatially ?}
+\item{local_start}{(logical - default False) Are species initially clustered spatially ?}
 
 \item{local_start_radius}{Radius in which initial species positions are initially clustered}
 

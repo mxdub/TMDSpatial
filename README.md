@@ -11,6 +11,8 @@ Il y a également quelques fonctions en plus pour faciliter l'utilisation des so
 + abund_to_occ() : produit une matrice d'occurrences (3D) à partir d'une matrice d'abondances
 + plots_occupancies() : produit un graphique du taux d'occupation des patchs à partir d'une matrice d'occurrences. 
 + plots_envt() : produit un graphique avec la répartion des patchs dans l'espace et leur valeur environnementale
++ get_envt() : produit data.frame avec valeurs environmental
++ get_geoposition() : get (x,y)-coord of patch
 
 ## Simulations
 

@@ -31,9 +31,9 @@ landscape_generate <- function(patches = 100, xy, plot = TRUE) {
   } else {
     landscape <- xy
   }
-  if (plot == TRUE){
-    plot(landscape, pch = 19)
-  }
+  # if (plot == TRUE){
+  #   plot(landscape, pch = 19)
+  # }
   return (landscape)
 }
 
@@ -83,18 +83,18 @@ dispersal_matrix <- function(landscape, torus = TRUE, disp_mat, kernel_exp = 0.1
   if (sum(colSums(disp_mat) > 1.001) > 0) warning ("dispersal from a patch to all others exceeds 100%. Make sure the rowSums(disp_mat) <= 1")
   if (sum(colSums(disp_mat) < 0.999) > 0) warning ("dispersal from a patch to all others is less than 100%. Some dispersing individuals will be lost from the metacommunity")
 
-  if (plot == TRUE){
-    g <- as.data.frame(disp_mat) %>%
-      dplyr::mutate(to.patch = rownames(disp_mat)) %>%
-      tidyr::gather(key = from.patch, value = dispersal, -to.patch) %>%
-      dplyr::mutate(from.patch = as.numeric(as.character(from.patch)),
-                    to.patch = as.numeric(as.character(to.patch))) %>%
-      ggplot2::ggplot(ggplot2::aes(x = from.patch, y = to.patch, fill = dispersal))+
-      ggplot2::geom_tile()+
-      scale_fill_viridis_c()
+  # if (plot == TRUE){
+  #   g <- as.data.frame(disp_mat) %>%
+  #     dplyr::mutate(to.patch = rownames(disp_mat)) %>%
+  #     tidyr::gather(key = from.patch, value = dispersal, -to.patch) %>%
+  #     dplyr::mutate(from.patch = as.numeric(as.character(from.patch)),
+  #                   to.patch = as.numeric(as.character(to.patch))) %>%
+  #     ggplot2::ggplot(ggplot2::aes(x = from.patch, y = to.patch, fill = dispersal))+
+  #     ggplot2::geom_tile()+
+  #     scale_fill_viridis_c()
 
-    print(g)
-  }
+  #   print(g)
+  # }
 
   return (disp_mat)
 }
@@ -137,12 +137,12 @@ env_generate <- function(landscape, env.df, env1Scale = 500, timesteps = 1000, p
     if(all.equal(names(env.df), c("env1", "patch", "time")) != TRUE) stop("env.df must be a dataframe with columns: env1, patch, time")
   }
 
-  if(plot == TRUE){
-    g<-ggplot2::ggplot(env.df, aes(x = time, y = env1, group = patch, color = factor(patch)))+
-      ggplot2::geom_line()+
-      scale_color_viridis_d(guide='none')
-    print(g)
-  }
+  # if(plot == TRUE){
+  #   g<-ggplot2::ggplot(env.df, aes(x = time, y = env1, group = patch, color = factor(patch)))+
+  #     ggplot2::geom_line()+
+  #     scale_color_viridis_d(guide='none')
+  #   print(g)
+  # }
 
   return(env.df)
 }
@@ -199,12 +199,12 @@ env_generate_wrp <- function(landscape, env.df, env1Scale = 500, temporal_autoco
     if(all.equal(names(env.df), c("env1", "patch", "time")) != TRUE) stop("env.df must be a dataframe with columns: env1, patch, time")
   }
 
-  if(plot == TRUE){
-    g<-ggplot2::ggplot(env.df, aes(x = time, y = env1, group = patch, color = factor(patch)))+
-      ggplot2::geom_line()+
-      scale_color_viridis_d(guide='none')
-    print(g)
-  }
+  # if(plot == TRUE){
+  #   g<-ggplot2::ggplot(env.df, aes(x = time, y = env1, group = patch, color = factor(patch)))+
+  #     ggplot2::geom_line()+
+  #     scale_color_viridis_d(guide='none')
+  #   print(g)
+  # }
 
   return(env.df)
 }

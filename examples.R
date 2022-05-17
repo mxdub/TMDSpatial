@@ -85,8 +85,8 @@ t = simulate_MC(N_patch, species = N_species,
 plots_envt(t)
 
 ### Gather environmental & geo info
-data_geo = t$landscape %>% as_tibble()
-data_envt = tibble( env1 = t$env.df$env1[1:N_patch] ) # We assume no temporal variability for envt., so only keep data for first year
+data_geo = get_geoposition(t)
+data_envt = get_envt(t)
 
 #### Transform output ####
 abundances = sim_to_matrix(t)
@@ -95,24 +95,24 @@ occupancies = abund_to_occ(abundances)
 ## Plots occupancies
 plots_occupancies(occupancies)
 
+#### plot in time ######
 # ## Plots in time
-n_steps = length(unique(t$dynamics.df$time))
-for(i in seq(1,n_steps,n_steps/10)){
-  snapshot = t(abundances[,,i])
-
-  tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
-  for(j in 1:N_species)
-    tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
-
-  ggplot(data = tp_)+
-    geom_point(aes(x=x,y=y), size = 9, shape = 1)+
-    geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
-    theme_bw()
-
-  ggsave(filename = paste0('p_', i, '.jpeg'))
-}
-
-
+# n_steps = length(unique(t$dynamics.df$time))
+# for(i in seq(1,n_steps,n_steps/10)){
+#   snapshot = t(abundances[,,i])
+# 
+#   tp_ = tibble(x = t$landscape$x, y = t$landscape$y)
+#   for(j in 1:N_species)
+#     tp_ = tp_ %>% add_column(!!paste0('S', j) := snapshot[,j])
+# 
+#   ggplot(data = tp_)+
+#     geom_point(aes(x=x,y=y), size = 9, shape = 1)+
+#     geom_scatterpie(aes(x = x, y = y), data = tp_, cols = paste0("S", 1:N_species))+
+#     theme_bw()
+# 
+#   ggsave(filename = paste0('p_', i, '.jpeg'))
+# }
+###########################
 
 
 ## Get Snapshot
@@ -120,7 +120,7 @@ position_  = 200
 snapshot_occ = t(occupancies[,,position_]) %>% as_tibble()
 snapshot_abund = t(abundances[,,position_]) %>% as_tibble()
 
-
+####### SARs #########
 ## SAR
 # compute_sa = function(comm, pos, i_min = 2, i_max = 10, max_plot = 10){
 #   splits = i_min:i_max
@@ -156,10 +156,12 @@ snapshot_abund = t(abundances[,,position_]) %>% as_tibble()
 # fit <- sar_average(data = sar, grid_start = "none")
 # summary(fit)
 # plot(fit)
+####### SARs #########
 
 # Bray-Curtis : si les diff?rences absolue d'abondances sont importantes
 # Hellinger (transfo) : si diff. relatives d'abondances sont diff?rentes et esp?ce communes plus importantes
 # Chi2 : diff. relatives + esp?ces rares
+
 
 #### Var. part ####
 
@@ -188,6 +190,7 @@ plot(mod, bg = c("hotpink","skyblue"))
 frac_envt = rda(decostand(snapshot_abund, "hel")~env1+I(env1^2),
                 data = data_envt)
 frac_envt
+RsquareAdj(frac_envt)
 anova(frac_envt)
 
 # Geo. table
@@ -407,12 +410,13 @@ nm2$BIC
 library(R2jags)
 
 serie_length = 20
-start_point = 150
-species = 7
+start_point = 100
+species = 1
 
 obs = occupancies[,,start_point:(start_point+serie_length-1)]
 obs = obs[species,,]
 
+plot(apply(obs[,], 2, mean), ylim = c(0,1))
 plot(apply(occupancies[species,,], 2, mean), ylim = c(0,1))
 
 n_site = dim(obs)[1]

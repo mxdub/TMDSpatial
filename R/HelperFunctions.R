@@ -46,6 +46,42 @@ abund_to_occ = function(abundances){
   abundances
 }
 
+#' Get environmental values from sim. output
+#'
+#' Shortcut to get environmental value, consider there is no temporal variability for envt.
+#'
+#' @param sim_output Output from simulate_MC()
+#'
+#' @return Environmental variable dataframe (patch x envt)
+#'
+#' @examples
+#' # data_envt = get_envt(sim_output)
+#'
+#' @export
+#'
+get_envt = function(sim_output){
+  n_patch = dim(sim_output$landscape)[1]
+  dplyr::tibble(env1 = sim_output$env.df$env1[1:n_patch])
+}
+
+
+#' Get spatial positions from sim. output
+#'
+#' Shortcut to get spatial positions 
+#'
+#' @param sim_output Output from simulate_MC()
+#'
+#' @return Position dataframe (patch x 2 - (x,y)-coord.)
+#'
+#' @examples
+#' # data_geo = get_geoposition(sim_output)
+#'
+#' @export
+#'
+get_geoposition = function(sim_output){
+  dplyr::as_tibble(sim_output$landscape)
+}
+
 #' Plots occupancies along time
 #'
 #' Simply plots proportion of occupied patch by species as function of time
