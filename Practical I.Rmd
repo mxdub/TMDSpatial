@@ -424,6 +424,8 @@ snapshot = t(abundances[,,200]) # Matrix is transpose (inverts rows / cols)
 
 ```
 
+Dataset can be download from https://github.com/mxdub/TMDSpatial/tree/main/data/, and put into a data/ folder in our working folder.
+
 ```{r}
 
 snapshot = read_rds("./data/vp_snap.rds")
