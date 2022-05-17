@@ -1,0 +1,24 @@
+model{
+
+  for(i in 1:n_site){
+    for(j in 2:n_year){
+        obs[i,j] ~ dbern(x[i,j]*detec)
+        x[i,j] ~ dbern( x[i,j-1] * (1-e) + (1-x[i,j-1])*c )
+    }
+  }
+
+  for(i in 1:n_site){
+    x[i,1] ~ dbern(psi)
+  }
+  
+  logit(e) = e_log
+  logit(c) = c_log
+  logit(psi) = psi_log
+  logit(detec) = detec_log
+
+  e_log ~ dnorm(0, 0.1)
+  c_log ~ dnorm(0, 0.1)
+  psi_log ~ dnorm(0, 0.1)
+  detec_log ~ dnorm(0, 0.1)
+
+}
