@@ -17,7 +17,6 @@ Imports:
     som.nn,
     viridis,
     tidyr,
-    RandomFields,
     vegan,
     magrittr
 Roxygen: list(markdown = TRUE)

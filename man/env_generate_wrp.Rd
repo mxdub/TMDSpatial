@@ -7,7 +7,7 @@
 env_generate_wrp(
   landscape,
   env.df,
-  env1Scale = 500,
+  env1Scale = 1,
   temporal_autocorr = TRUE,
   timesteps = 1000,
   plot = TRUE
@@ -35,6 +35,7 @@ Function is here updated - allow to remove temporal environmental heterogeneity
 }
 \examples{
 # env_generate(landscape_generate())
+
 
 }
 \author{

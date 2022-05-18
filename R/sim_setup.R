@@ -116,7 +116,6 @@ dispersal_matrix <- function(landscape, torus = TRUE, disp_mat, kernel_exp = 0.1
 #' @examples
 #' # env_generate(landscape_generate())
 #'
-#' @importFrom RandomFields RMexp RMnugget RMtrend RFsimulate
 #' @import ggplot2
 #'
 #' @export
@@ -124,14 +123,14 @@ dispersal_matrix <- function(landscape, torus = TRUE, disp_mat, kernel_exp = 0.1
 env_generate <- function(landscape, env.df, env1Scale = 500, timesteps = 1000, plot = TRUE){
   if (missing(env.df)){
     repeat {
-      model <- RandomFields::RMexp(var=0.5, scale=env1Scale) + # with variance 4 and scale 10
-        RandomFields::RMnugget(var=0) + # nugget
-        RandomFields::RMtrend(mean=0.05) # and mean
+      # model <- RandomFields::RMexp(var=0.5, scale=env1Scale) + # with variance 4 and scale 10
+      #   RandomFields::RMnugget(var=0) + # nugget
+      #   RandomFields::RMtrend(mean=0.05) # and mean
 
-      RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
-      env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"), patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
-      env.initial <- env.df[env.df$time == 1,]
-      if((max(env.initial$env1)-min(env.initial$env1)) > 0.6) {break}
+      # RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
+      # env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"), patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+      # env.initial <- env.df[env.df$time == 1,]
+      # if((max(env.initial$env1)-min(env.initial$env1)) > 0.6) {break}
     }
   } else {
     if(all.equal(names(env.df), c("env1", "patch", "time")) != TRUE) stop("env.df must be a dataframe with columns: env1, patch, time")
@@ -166,30 +165,40 @@ env_generate <- function(landscape, env.df, env1Scale = 500, timesteps = 1000, p
 #' @examples
 #' # env_generate(landscape_generate())
 #'
-#' @importFrom RandomFields RMexp RMnugget RMtrend RFsimulate
+#' 
 #' @import ggplot2
 #'
 #' @export
 #'
-env_generate_wrp <- function(landscape, env.df, env1Scale = 500, temporal_autocorr = TRUE, timesteps = 1000, plot = TRUE){
+env_generate_wrp <- function(landscape, env.df, env1Scale = 1, temporal_autocorr = TRUE, timesteps = 1000, plot = TRUE){
   if (missing(env.df)){
     repeat {
-      model <- RandomFields::RMexp(var=0.5, scale=env1Scale) + # with variance 4 and scale 10
-        RandomFields::RMnugget(var=0) + # nugget
-        RandomFields::RMtrend(mean=0.05) # and mean
+      # model <- RandomFields::RMexp(var=0.5, scale=env1Scale) + # with variance 4 and scale 10
+      #   RandomFields::RMnugget(var=0) + # nugget
+      #   RandomFields::RMtrend(mean=0.05) # and mean
 
       if(temporal_autocorr){
+        print('Not possible anymore !')
 
-        RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
-
-        env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"),
-                             patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+        # RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = 1:timesteps, spConform=FALSE)
+        # env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"),
+        #                      patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+        
       }
       else{
 
-        RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = NULL, spConform=FALSE)
+        # RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = NULL, spConform=FALSE)
 
-        env.df <- data.frame(env1 = vegan::decostand(RF,method = "range"),
+
+        dist <- as.matrix(dist(landscape))
+        ## generating autocorrelated gaussians
+        omega1 <- exp(-env1Scale*dist)
+        weights <- chol(solve(omega1))
+        weights_inv <- solve(weights)
+        error <- weights_inv %*% rnorm(dim(dist)[1])
+        env = vegan::decostand(error, method = "range")
+
+        env.df <- data.frame(env1 =env,
                              patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
       }
       env.initial <- env.df[env.df$time == 1,]
