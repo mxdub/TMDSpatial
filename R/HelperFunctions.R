@@ -129,6 +129,7 @@ plots_occupancies = function(occupancies){
 #'
 #' @import ggplot2
 #' @import dplyr
+#' @import tibble
 #'
 #' @export
 #'
