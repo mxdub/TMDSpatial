@@ -12,8 +12,7 @@
 #' @param plot option to show plot of landscape
 #' @param torus whether to model the landscape as a torus
 #' @param kernel_exp the exponential rate at which dispersal decreases as a function of the distance between patches
-#' @param env1Scale scale of environmental autocorrelation between 0 and 1000
-#' @param temporal_autocorr (logical - default False) adding temporal (autocorrelated) heterogeneity
+#' @param env1Scale environmental autocorrelation (e.g., 0.01 : strong autocorr. to larger values, e.g., 100 : no autocorr.)
 #' @param timesteps number of timesteps to simulate
 #' @param burn_in length of burn in period
 #' @param initialization length of initial period before environmental change begins

@@ -49,9 +49,7 @@ simulate_MC(
 
 \item{kernel_exp}{the exponential rate at which dispersal decreases as a function of the distance between patches}
 
-\item{env1Scale}{scale of environmental autocorrelation between 0 and 1000}
-
-\item{temporal_autocorr}{(logical - default False) adding temporal (autocorrelated) heterogeneity}
+\item{env1Scale}{environmental autocorrelation (e.g., 0.01 : strong autocorr. to larger values, e.g., 100 : no autocorr.)}
 
 \item{timesteps}{number of timesteps to simulate}
 
