@@ -189,7 +189,7 @@ env_generate_wrp <- function(landscape, env.df, env1Scale = 1, temporal_autocorr
 
         # RF <- RandomFields::RFsimulate(model = model,x = landscape$x*10, y = landscape$y*10, T = NULL, spConform=FALSE)
 
-
+        
         dist <- as.matrix(dist(landscape))
         ## generating autocorrelated gaussians
         omega1 <- exp(-env1Scale*dist)
@@ -197,9 +197,11 @@ env_generate_wrp <- function(landscape, env.df, env1Scale = 1, temporal_autocorr
         weights_inv <- solve(weights)
         error <- weights_inv %*% rnorm(dim(dist)[1])
         env = vegan::decostand(error, method = "range")
-
+        
         env.df <- data.frame(env1 =env,
-                             patch = 1:nrow(landscape), time = rep(1:timesteps, each = nrow(landscape)))
+                             patch = 1:nrow(landscape),
+                             time = rep(1:timesteps, each = nrow(landscape)),
+                             row.names = NULL)
       }
       env.initial <- env.df[env.df$time == 1,]
       if((max(env.initial$env1)-min(env.initial$env1)) > 0.6) {break}
