@@ -22,7 +22,7 @@ Pour les simulations, les paramètres suivants sont disponibles :
 
 ### Environnement et niches (fund.)
 
-Un unique axe de variation environnementale existe (valeurs de 0 à 1). Comme précisé plus haut, la "valeur environnementale" de chaque site est fixe dans le temps par défaut. L'autocorrelation spatiale dépend du paramètre __env1Scale__ (entre 0 et 1000). 
+Un unique axe de variation environnementale existe (valeurs de 0 à 1). Comme précisé plus haut, la "valeur environnementale" de chaque site est fixe dans le temps par défaut. L'autocorrelation spatiale dépend du paramètre __env1Scale__ (entre 0.01 - autocorr. spatiale importante et 100 - pas d'autocorr. spatiale). 
 
 La niche fondamentale des espèces peut être définie automatiquement (si __env_optima__ n'est pas spécifié) ou manuellement. Si les niches sont définies automatiquement, l'argument __optima_spacing__ définit la manière dont les optimums sont tirés (soit aléatoirement, soit de manière uniforme - *random* vs. *even*). Sinon, un vecteur de la taille du nombre d'espèces donnent les valeurs des optimums pour chacune des espèces. Trois arguments supplémentaires peuvent être spécifiés : __max_env__ et __min_env__ donnent les valeurs minimales et maximales pour les optimums (lorsque tirés aléatoirement), et __env_niche_breadth__ donne l'étendue de la tolérance environnementale (peut être soit une valeur pour toutes les espèces, ou un vecteur de la taille du nombre d'espèces). Le taux de croissance effectif au sein d'un patch est une fonction Gaussienne du gradient envionnemental (et indépendant de la densité locale). Le taux de croissance maximal étant défini par l'argument __max_r__. (voir Eq. 2 dans Thompson et al. 2020).
 
