@@ -2,7 +2,7 @@
  
 L'idée est ici de pouvoir simuler des jeux de données proches de ceux utilisés en écologie des commuanutés, et éprouver les différentes méthodes disponibles face à ces données.  
 On réutilise le package {mcomsimr} (Thompson et al., 2020, EcoLet., obtenu depuis https://github.com/plthompson/mcomsimr) mais légérement modifié. Les modifications actuelles sont : 
-+ __Autocorrelation temporelle__ (au niveau des patchs): Celle-ci est initialement inclue dans le package {ecospat}, i.e., il existe une variabilité temporelle, plus ou moins autocorrélée, dans les conditions environnementales des patchs. Cette variabilité ajoute un niveau de complexité supplémentaire. Ainsi, celle-ci n'est pas considérée dans cette version du package. Voir l'argument __temporal_autocorr__ de la fonction simulate_MC() pour l'activer. A noter; le même niveau d'autocorrélation est considéré à la fois pour le temps et pour l'espace.
++ __Autocorrelation temporelle__ (au niveau des patchs, NOT POSSIBLE ANYMORE): Celle-ci est initialement inclue dans le package {ecospat}, i.e., il existe une variabilité temporelle, plus ou moins autocorrélée, dans les conditions environnementales des patchs. Cette variabilité ajoute un niveau de complexité supplémentaire. Ainsi, celle-ci n'est pas considérée dans cette version du package. ~~Voir l'argument __temporal_autocorr__ de la fonction simulate_MC() pour l'activer. A noter; le même niveau d'autocorrélation est considéré à la fois pour le temps et pour l'espace.~~
 + __Extinction de patche__: Voir les paramètres __extrip_prob__ et __extirp_all_pop__ de la fonction simulate_MC(). Le premier argument est un argument de la fonction de base, il donne la probabilité qu'à chaque pas de temps, une population s'éteigne dans un patch. Le second argument est lui en revanche nouveau. Il permet de spécifier si l'extinction concerne __toutes__ les espèces présentes dans un patch ou si ce tirage est réalisé pour chacune des espèces. A noter; si la probabilité est de 0.01 et que le patch contient trois espèces, dans le cas où __extirp_all_pop = TRUE__, les trois espèces peuvent s'éteindre simultanément avec une prob. de 0.01 mais les extinctions individuelles ne sont pas possibles via ce paramètre d'extirpation (mais possible par la dynamique locale). En revanche, si __extirp_all_pop = FALSE__, alors la probabilité pour les trois espèces de s'éteindre simultanément est ici : $0.01^3=10^{-6}$.
 
 
@@ -36,9 +36,6 @@ La dispersion est gérée via trois arguments. L'argument __dispersal__ donne la
 
 Les interactions interspecifiques peuvent être ici encore soit spécifiées manuellement (via l'argument __int_mat__) ou automatiquement. Dans ce dernier cas, l'argument __intra__ donne les valeurs pour les coefficients de compétition intraspécifique (soit une valeur pour toutes les espèces, ou un vecteur de la taille du nombre d'espèces), __min_inter__ et __max_inter__ donnent les valeurs minimales et maximales pour les coefficients interspécifiques. Finalement, l'argument __comp_scaler__ permet de changer l'échelle pour tous les coefficients (i.e., augmente ou réduit les effets d'interactions p/r aux effets environnementaux, cf. Eq. 2). A noter; l'effet des interactions n'est pas dépendant des conditions environnementales.
 
-## Trucs testables
-
-+ 
 
 ### Références
 
